@@ -1,0 +1,4 @@
+# MKB: LF line endings for project memory and agent instruction files
+docs/mkb/** text eol=lf
+AGENTS.md text eol=lf
+CLAUDE.md text eol=lf
