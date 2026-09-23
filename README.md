@@ -57,8 +57,10 @@ After adoption, agents follow the block in `AGENTS.md`; people start with [spec/
 | [examples/tarelog/](examples/tarelog/) | A fictional project's MKB after eight sessions by two humans, Claude Code and Codex; read [examples/tarelog/WALKTHROUGH.md](examples/tarelog/WALKTHROUGH.md) first. |
 | [.gitattributes](.gitattributes) | `* text=auto eol=lf`: every file of this repository has LF line endings. |
 | [Prompt_MarkdownKnowledgeBase_Standard.md](Prompt_MarkdownKnowledgeBase_Standard.md) | The original brief this standard answers. |
+| [docs/mkb/](docs/mkb/INDEX.md) | This repository's own MKB (minimal profile): state and open work on the standard itself. |
+| [dev/](dev/) | Development aids: design contract, link checker, checker test suite, review data (see Q-001 in `docs/mkb/questions/`). |
 
-Note: no file in this repository is named `AGENTS.md`, `CLAUDE.md` or `GEMINI.md`, because agents working on the standard itself would load such files as instructions; copy-ready versions use `.tmpl.md` and are renamed on copy.
+Note: apart from the root `AGENTS.md` and `CLAUDE.md`, which wire this repository's own project memory in `docs/mkb/`, no file in this repository is named `AGENTS.md`, `CLAUDE.md` or `GEMINI.md`, because agents working on the standard itself would load such files as instructions; copy-ready versions use `.tmpl.md` and are renamed on copy.
 
 ## Deliverables coverage
 
