@@ -1,7 +1,7 @@
 ---
 id: DB-TICKETS
 type: database
-summary: Ticket database data/tarelog.db (SQLite, WAL) - readings, tickets, corrections, customers, daily totals, migrations, backup
+summary: SQLite ticket database data/tarelog.db in WAL mode - readings, tickets, corrections, daily totals, migrations, backup
 code: [src/tarelog/tickets/, migrations/]
 verified: 2026-09-01
 related: [ADR-001, TS-SQLITE-LOCKED]

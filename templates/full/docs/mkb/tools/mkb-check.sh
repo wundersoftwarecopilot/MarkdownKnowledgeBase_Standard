@@ -297,7 +297,7 @@ BEGIN {
 { sub(/\r$/, ""); if ($0 != "") F[++nfile] = $0 }
 END {
   if (bad) exit 2
-  for (i = 2; i <= nfile; i++) { x = F[i]; for (j = i - 1; j > 0 && F[j] > x; j--) F[j + 1] = F[j]; F[j + 1] = x }
+  for (i = 2; i <= nfile; i++) { tmp = F[i]; for (j = i - 1; j > 0 && F[j] > tmp; j--) F[j + 1] = F[j]; F[j + 1] = tmp }
   for (i = 1; i <= nfile; i++) if (!(F[i] in DONE)) { DONE[F[i]] = 1; file(F[i]) }
   lim = (PROFILE == "minimal") ? 35 : 14
   for (i = 1; i <= nc; i++) {
