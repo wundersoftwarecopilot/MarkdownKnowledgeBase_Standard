@@ -6,7 +6,7 @@ The MKB is a set of small, purpose-specific Markdown files under `docs/mkb/` tha
 It replaces the single ever-growing `Handoff.md`: every task, decision, question and piece of hard-won knowledge gets its own file named after its ID, so agents find what they need with `git grep` instead of reading everything, and parallel sessions merge cleanly or conflict loudly instead of silently overwriting each other.
 One block in the root `AGENTS.md` tells agents what to read before changing code, how to claim work, and what to update before they stop; humans follow the same rules.
 Two profiles use the same paths: minimal for small projects, full for teams where several humans and agents work concurrently; upgrading never moves or renames a file.
-To adopt it, copy one profile into your project, fill five short files, insert one block into `AGENTS.md` and run the checker (Quick start below).
+To adopt it, copy one profile into your project, fill five short files (seven in the full profile), insert one block into `AGENTS.md` and run the checker (Quick start below).
 
 ## The rules in one screen
 
