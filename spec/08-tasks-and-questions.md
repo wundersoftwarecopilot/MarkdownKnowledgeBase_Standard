@@ -66,8 +66,8 @@ Example: the Completion section of TareLog's TASK-002.
 ```markdown
 ## Completion
 - 2026-09-03 claude-code: done in PR #12
-- Shipped: WI-200 frame parser in `src/tarelog/gateway/wi200.py`; lane 2 readings are stored again.
-- Docs: INT-WI200, SERVICE-GATEWAY
+- Shipped: `src/tarelog/gateway/wi200.py` (`parse_frame()`) with one byte buffer per lane, used by `src/tarelog/gateway/reader.py`; captures from both lanes as fixtures.
+- Docs: INT-WI200 (new), SERVICE-GATEWAY
 - Follow-ups: TASK-006
 - Deviations: none
 ```
@@ -184,7 +184,7 @@ Setting a block is trigger T6 (a question for a person) or T7 (other work or an 
 A blocked task whose file has not changed for 14 days is W14 ([09-lifecycle.md](09-lifecycle.md) §9.4).
 There is no blocker list file: status lives only in the task files (anti-pattern 9), and a blocker without an owner is anti-pattern 36.
 
-Example: when claude-code opened Q-002 on 2026-09-17, the coordination commit `Q-002: ask marta` set the unowned TASK-005 to `status: blocked` with `blocked_by: [Q-002]` and added the Notes line `- 2026-09-17 claude-code: blocked on Q-002 (report day boundary)`.
+Example: when claude-code opened Q-002 on 2026-09-17, the coordination commit `Q-002: ask marta` set the unowned TASK-005 to `status: blocked` with `blocked_by: [Q-002]` and added the Notes line `- 2026-09-17 claude-code: blocked on Q-002; the goal does not say where a customer's report day ends.`
 
 ## 8.8 Board views
 

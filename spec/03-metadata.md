@@ -275,10 +275,10 @@ Example (TareLog module):
 ---
 id: MODULE-REPORTS
 type: module
-summary: Daily per-customer delivery reports - CSV generation, report day boundaries, 06:00 schedule
+summary: Daily delivery report per customer - daily totals, CSV report files, report day boundary, 05:00 report timer
 code: [src/tarelog/reports/]
 verified: 2026-09-17
-related: [ADR-003, INT-HAULER-SFTP]
+related: [ADR-003, DB-TICKETS, INT-HAULER-SFTP, TASK-005]
 ---
 # MODULE-REPORTS: Daily delivery reports
 ```
@@ -288,10 +288,10 @@ Example (TareLog service):
 ---
 id: SERVICE-GATEWAY
 type: service
-summary: Gateway reader service - polls both WI-200 weighing indicators over TCP and stores readings as tickets
+summary: Reader service tarelog-reader - reads both lanes' WI-200 indicators over TCP and stores stable readings in SQLite
 code: [src/tarelog/gateway/]
 verified: 2026-09-22
-related: [INT-WI200, DB-TICKETS]
+related: [INT-WI200, DB-TICKETS, TS-SQLITE-LOCKED, TASK-006]
 ---
 # SERVICE-GATEWAY: Weighbridge reader service
 ```
@@ -301,12 +301,12 @@ Example (TareLog database):
 ---
 id: DB-TICKETS
 type: database
-summary: SQLite ticket store in WAL mode - weighing tickets are legal-for-trade records, never updated or deleted
+summary: SQLite ticket database data/tarelog.db in WAL mode - readings, tickets, corrections, daily totals, migrations, backup
 code: [src/tarelog/tickets/, migrations/]
 verified: 2026-09-01
 related: [ADR-001, TS-SQLITE-LOCKED]
 ---
-# DB-TICKETS: Weighing ticket database
+# DB-TICKETS: Ticket database
 ```
 
 Example (TareLog integration):
@@ -314,10 +314,10 @@ Example (TareLog integration):
 ---
 id: INT-HAULER-SFTP
 type: integration
-summary: Beta Haulage SFTP server - daily CSV report upload, key authentication, 06:00 deadline
+summary: Beta Haulage SFTP server - daily CSV report upload, SSH key authentication, /inbound/tarelog/, 06:00 deadline, retries
 code: [src/tarelog/delivery/sftp.py]
 verified: 2026-09-16
-related: [ADR-003, TASK-004]
+related: [ADR-003, MODULE-REPORTS, TASK-004]
 ---
 # INT-HAULER-SFTP: Beta Haulage SFTP delivery
 ```
@@ -334,12 +334,12 @@ Example (TareLog):
 ---
 id: TS-SQLITE-LOCKED
 type: troubleshooting
-summary: SQLite database is locked errors while the report job and the gateway write tickets at the same time
+summary: sqlite3.OperationalError database is locked - a second writer holds the SQLite write lock past the busy timeout
 code: [src/tarelog/tickets/store.py]
 verified: 2026-09-01
-related: [ADR-001, DB-TICKETS]
+related: [ADR-001, DB-TICKETS, SERVICE-GATEWAY]
 ---
-# TS-SQLITE-LOCKED: Database is locked during report runs
+# TS-SQLITE-LOCKED: Database is locked
 ```
 
 ## 3.6 Fields deliberately not used

@@ -128,7 +128,7 @@ Example: discovery for TareLog TASK-002 in session S2 (full output in [examples/
 2. Code owners: SERVICE-GATEWAY, whose entry `src/tarelog/gateway/` is a prefix of `src/tarelog/gateway/wi200.py`.
 3. `git grep -l -w SERVICE-GATEWAY -- docs/mkb` adds `docs/mkb/project/ARCHITECTURE.md`.
 4. Reverse hop: `git grep -l -w SERVICE-GATEWAY -- docs/mkb/decisions` finds no ADR.
-5. Read in full: CONSTRAINTS.md, SERVICE-GATEWAY and the gateway row of ARCHITECTURE.md, 3 docs.
+5. Read in full: CONSTRAINTS.md, SERVICE-GATEWAY and the Reader service row of ARCHITECTURE.md, 3 docs.
 
 ## 5.4 Lite path
 

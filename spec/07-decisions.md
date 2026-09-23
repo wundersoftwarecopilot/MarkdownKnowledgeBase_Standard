@@ -30,7 +30,7 @@ Example: the TareLog ADRs written during work, and the condition each one meets.
 | ADR | Alternatives weighed | Condition met |
 |---|---|---|
 | ADR-002 Render daily reports as PDF with headless Chromium | headless Chromium, ReportLab, HTML e-mail | adds a significant dependency (headless Chromium) |
-| ADR-003 Deliver daily reports as CSV instead of PDF | CSV, or keep the PDF of ADR-002 | changes an external contract (the files Beta Haulage receives) and deviates from an existing ADR |
+| ADR-003 Deliver daily reports as CSV instead of PDF | CSV for everyone, PDF plus CSV for Beta Haulage, XLSX, keep PDF only | changes an external contract (the files Beta Haulage receives) and deviates from an existing ADR |
 
 ## 7.2 When not to write an ADR
 

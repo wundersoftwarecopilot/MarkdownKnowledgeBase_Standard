@@ -162,16 +162,7 @@ Each order runs from highest to lowest; the Authority section of `INDEX.md` repe
 
 ### 1.7.2 Resolving contradictions
 
-| An agent finds that... | It does |
-|---|---|
-| a descriptive doc (knowledge, ARCHITECTURE, OVERVIEW, state, handoff) contradicts the code, and the fix is small and in scope | fix the doc in the same commit; mention it in the commit message; bump `verified` for what you checked ([03-metadata.md](03-metadata.md) §3.3) |
-| the same, but the fix is large or out of scope | add a `> STALE` banner ([09-lifecycle.md](09-lifecycle.md) §9.5) and a task; do not rely on the stale text |
-| the code violates CONSTRAINTS.md or an accepted ADR | never edit the constraint or ADR to match the code; fix the code only if that is inside your task, citing the ID in a comment; otherwise open a question to the lead and mention it in your handoff |
-| the task's acceptance criteria contradict an accepted ADR or a constraint | stop that part; open a question, or draft a `proposed` superseding ADR, and wait for a human |
-| a human in the session tells you to break an accepted ADR or a constraint | point out the conflict; if they confirm, write the superseding ADR (`deciders` = that human) or have them edit CONSTRAINTS.md, before or together with the code |
-| two accepted ADRs conflict without a `supersedes` link | follow the newer one and open a question to the lead |
-| a handoff or state bullet contradicts the code | the code wins; fix or delete the item |
-
+The contradiction table, which applies these orders case by case, is in [05-agent-workflow.md](05-agent-workflow.md) §5.7.
 Humans resolve contradictions the same way.
 
 ## 1.8 How an agent uses the MKB in one session

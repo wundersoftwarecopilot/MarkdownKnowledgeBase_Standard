@@ -202,14 +202,14 @@ From PowerShell: `& "$env:ProgramFiles\Git\bin\bash.exe" docs/mkb/tools/mkb-chec
 
 This standard fixes the form of each line and the final line; it does not fix the wording of `<message>` or the order of the `ERROR` and `WARN` lines above the final line.
 
-Example: `sh docs/mkb/tools/mkb-check.sh --today 2026-09-22` in TareLog before the fixes of session S8 (message wording illustrative):
+Example: `sh docs/mkb/tools/mkb-check.sh --today 2026-09-22` in TareLog before the fixes of session S8 (messages as the shipped `mkb-check.sh` words them):
 
 ```text
-WARN W2 docs/mkb/knowledge/integrations/INT-WI200.md: code path src/tarelog/gateway/ changed 2026-09-14, doc last changed 2026-09-03
-WARN W2 docs/mkb/knowledge/services/SERVICE-GATEWAY.md: code path src/tarelog/gateway/ changed 2026-09-14, doc last changed 2026-09-03
-WARN W4 docs/mkb/handoff/TASK-004.md: task TASK-004 is done
-WARN W5 docs/mkb/state/CURRENT.md: bullet dated 2026-09-04 is older than 14 days
-WARN W6 docs/mkb/tasks/TASK-001.md: no commit on luca/task-001-nightly-backup for 18 days
+WARN W2 docs/mkb/knowledge/integrations/INT-WI200.md: code changed on 2026-09-14, after the last change of this doc on 2026-09-03
+WARN W2 docs/mkb/knowledge/services/SERVICE-GATEWAY.md: code changed on 2026-09-14, after the last change of this doc on 2026-09-03
+WARN W6 docs/mkb/tasks/TASK-001.md: in progress; no commit on branch luca/task-001-nightly-backup since 2026-09-04
+WARN W5 docs/mkb/state/CURRENT.md: bullet dated 2026-09-04 is older than 14 days: re-verify and re-date, or delete
+WARN W4 docs/mkb/handoff/TASK-004.md: its task TASK-004 is done: move lasting lines, then delete
 mkb-check: 0 errors, 5 warnings
 ```
 

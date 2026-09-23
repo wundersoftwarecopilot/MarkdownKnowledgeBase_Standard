@@ -156,15 +156,15 @@ Written 2026-09-15 by codex on branch `codex/task-004-sftp-delivery`.
 - INT-HAULER-SFTP updated (`code`, `verified: 2026-09-15`); branch pushed, `git status` clean.
 
 ## Next steps
-1. In `upload_report()`, retry a failed upload 3 times, then send the alert e-mail.
-2. Add a test in which the fake SFTP server fails twice and then accepts the file.
-3. Finish per T3: tick the criteria, set `done`, move the Dead ends line below to INT-HAULER-SFTP, delete this file.
+1. In `upload_report()` (sftp.py:57), retry a failed upload 3 times, 5 minutes apart.
+2. After the third failure, send an alert e-mail to `delivery.alert_to` through `src/tarelog/delivery/mailer.py`.
+3. Test both with the local SFTP fixture, then close TASK-004.
 
 ## Watch out
 - `src/tarelog/delivery/sftp.py:88` catches the paramiko timeout and only logs it; the retry replaces that `except` block instead of wrapping it.
 
 ## Dead ends
-- Uploading the per-customer CSV files in parallel: the partner server rejects parallel uploads; upload one file at a time.
+- Uploading several report days in parallel, one SFTP session each: the second session fails with `ChannelException: (1, 'Administratively prohibited')`; the partner allows one session per account.
 
 ## Read first
 - TASK-004 (criteria marked `resolves Q-001`), INT-HAULER-SFTP, ADR-003.
@@ -175,9 +175,9 @@ Why it works:
 - The file name names the task; the line under the H1 names the date, the writer and the branch.
 - Where it stands can be checked against `git log`, `git status` and CI in a minute.
 - The next steps are numbered and concrete, and the first one can be started immediately.
-- The line number in Watch out is allowed because a handoff is not a durable doc.
+- The line numbers in Next steps and Watch out are allowed because a handoff is not a durable doc.
 - The durable facts about the partner server (key authentication, vault path, target directory) are already in INT-HAULER-SFTP; the handoff only points to it.
-- The Dead ends line may stay true after the merge, so step 3 plans its move (T3).
+- The Dead ends line may stay true after the merge, so whoever closes the task moves it to INT-HAULER-SFTP before deleting this file (T3).
 - It has 23 lines, within the limit of 30.
 
 ### 6.9.2 Bad
