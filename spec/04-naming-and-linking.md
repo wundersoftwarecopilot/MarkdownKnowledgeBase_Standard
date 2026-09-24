@@ -56,11 +56,11 @@ Tool-named instruction files are forbidden under `docs/mkb/` ([02-directory-stru
 
 The next number is 1 + the highest number ever added on any fetched ref, not the highest number in your working tree.
 
-1. `git fetch --all --quiet` (skip with no remote).
+1. `git fetch --all --quiet` (skip with no remote); in a shallow clone, run `git fetch --unshallow` first, because a shallow history hides the numbers of deleted questions.
 2. List every file ever added under the record directory on any ref:
-   - Tasks: `git log --all --diff-filter=A --name-only --format= -- docs/mkb/tasks`
-   - ADRs: `git log --all --diff-filter=A --name-only --format= -- docs/mkb/decisions` (or the ADR directory adopted in place, [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4)
-   - Questions: `git log --all --diff-filter=A --name-only --format= -- docs/mkb/questions`
+   - Tasks: `git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/tasks`
+   - ADRs: `git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/decisions` (or the ADR directory adopted in place, [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4)
+   - Questions: `git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/questions`
 3. Also consider files you created but have not committed.
 4. Next ID = highest number found + 1, zero-padded to at least 3 digits (in an adopted ADR directory: padded to the width of its existing numbers, for example `ADR-0008`).
 5. Equivalent: `sh docs/mkb/tools/mkb-check.sh next TASK` (or `ADR`, `Q`; add `--adr-dir <dir>` for an adopted ADR directory).
@@ -68,13 +68,14 @@ The next number is 1 + the highest number ever added on any fetched ref, not the
    The push is a compare-and-swap: a rejected push followed by an add/add conflict when you rebase the coordination worktree means someone took that number; `git rebase --abort`, allocate again from step 1, and retry.
    Protected default branch: the file goes in a one-file `mkb-coord` PR ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4.2 step 5).
    ADRs: create the file on your work branch (it stays `proposed` there, [07-decisions.md](07-decisions.md) §7.4) and push the branch soon.
+   Until that branch merges, cite the new ADR only in files on that branch, never in a coordination commit: a renumber (§4.4) rewrites only the lines the branch added.
 7. Dispatched agents that cannot push to the default branch never allocate TASK or Q IDs: they write `New task: <title>` or `Question for <handle>: <question>` in their `MKB for humans:` lines ([05-agent-workflow.md](05-agent-workflow.md) §5.8), and the dispatching human creates the records.
 
 POSIX sh pipeline; it prints the next ID, `TASK-001` when none exists:
 
 ```sh
 git fetch --all --quiet
-git log --all --diff-filter=A --name-only --format= -- docs/mkb/tasks \
+git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/tasks \
   | grep -oE 'TASK-[0-9]+' | awk -F- '$2+0 > n { n = $2+0 } END { printf "TASK-%03d\n", n+1 }'
 ```
 
@@ -82,11 +83,11 @@ PowerShell equivalent of the task pipeline:
 
 ```powershell
 git fetch --all --quiet
-$max = (git log --all --diff-filter=A --name-only --format= -- docs/mkb/tasks |
+$max = (git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/tasks |
   Select-String -Pattern 'TASK-(\d+)' -AllMatches |
   ForEach-Object { $_.Matches } | ForEach-Object { [int]$_.Groups[1].Value } |
   Measure-Object -Maximum).Maximum
-'TASK-{0:D3}' -f ($max + 1)
+'TASK-{0:D3}' -f ([int]$max + 1)
 ```
 
 For questions, replace `tasks` and `TASK` with `questions` and `Q`; for ADRs in `docs/mkb/decisions`, with `decisions` and `ADR`.
@@ -94,12 +95,14 @@ For questions, replace `tasks` and `TASK` with `questions` and `Q`; for ADRs in 
 Adopted ADR directory (sh; prints the next ID at the directory's width; `mkb-check.sh next ADR --adr-dir docs/adr` does the same, also from PowerShell through Git Bash, [09-lifecycle.md](09-lifecycle.md) §9.7):
 
 ```sh
-git log --all --diff-filter=A --name-only --format= -- docs/adr | sed 's|.*/||' \
+git log --all --no-renames --diff-filter=A --name-only --format= -- docs/adr | sed 's|.*/||' \
   | grep -oE '^[0-9]+' | awk '$1+0 > n { n = $1+0 } { w = length($1) } END { f = "ADR-%0" w "d\n"; printf f, n+1 }'
 ```
 
 Numbers are never reused, including numbers of deleted questions and archived tasks.
 Gaps are normal.
+
+Note: `--no-renames` makes a file created by `git mv`, such as a renumbered record (§4.4 step 3), count as added; without it git reports a rename and the new number is missed.
 
 Note: step 6 makes a new TASK or Q number visible to every actor before anything refers to it, so a second creator of the same number fails at its own push while nothing depends on that number yet.
 
@@ -121,12 +124,12 @@ Procedure:
 1. Stop the rebase or merge: `git rebase --abort` (or `git merge --abort`).
    This avoids the reversed meaning of "ours" and "theirs" during a rebase.
 2. Allocate the next free ID (§4.3) after fetching.
-3. `git mv <dir>/<OLD-ID>.md <dir>/<NEW-ID>.md`, set `id: <NEW-ID>`, add `formerly: <OLD-ID>`.
+3. `git mv <dir>/<OLD-ID>.md <dir>/<NEW-ID>.md`, set `id: <NEW-ID>`, start the H1 with `# <NEW-ID>:`, add `formerly: <OLD-ID>`.
 4. Run `git diff origin/main...HEAD` and, only in lines your branch added that refer to your item, replace the old ID with the new one: other MKB files, code comments that cite it, and your handoff file name if the renumbered item is your own work item.
 5. Leave every pre-existing line that refers to the default branch's item untouched.
 6. Commit `mkb: renumber <OLD-ID> -> <NEW-ID> (ID collision)`, then run `git merge origin/main`, not a rebase: a rebase replays the commit that added `<OLD-ID>.md` and conflicts again, while a merge compares trees and sees no conflict.
    From then on this branch takes the default branch by merge (exception to [12-concurrency.md](12-concurrency.md) §12.1).
-   Push, and write "Renumbered <OLD-ID> -> <NEW-ID> (collision)" in the PR description.
+   Push, and write "Renumbered <OLD-ID> -> <NEW-ID> (collision); merge with a merge commit or squash, not rebase-merge" in the PR description.
 7. Already pushed commit messages keep the old ID; `formerly` lets `git grep -w <OLD-ID>` find both records.
 
 Example: a branch whose proposed ADR-007 collides with an ADR-007 merged first ends with this front matter in `docs/mkb/decisions/ADR-008.md`:

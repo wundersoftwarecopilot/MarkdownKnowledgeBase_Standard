@@ -165,7 +165,7 @@ Resolve W10 by repointing the reference to the record's current ID, or by removi
 Resolve W11 by deleting the guide comment, which should have been deleted when the file was created from its skeleton.
 
 Example: TareLog session S8 in [examples/tarelog/WALKTHROUGH.md](../examples/tarelog/WALKTHROUGH.md) is a gardening run on `claude-code/mkb-garden-2026-09-22`.
-Its PR description lists, in five lines, a W5 Health bullet deleted, a W4 handoff whose lasting line moved into INT-HAULER-SFTP, W2 drift checked on INT-WI200 and SERVICE-GATEWAY, a W6 claim of a human owner flagged to the lead instead of released, and the final mkb-check result.
+Its PR description lists, in five lines, a W5 Health bullet deleted, a W4 handoff deleted once its lasting line was found already in INT-HAULER-SFTP, W2 drift checked on INT-WI200 and SERVICE-GATEWAY, a W6 claim of a human owner flagged to the lead instead of released, and the final mkb-check result.
 
 ## 9.7 mkb-check
 

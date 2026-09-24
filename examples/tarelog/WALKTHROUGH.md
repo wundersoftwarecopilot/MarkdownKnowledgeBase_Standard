@@ -498,7 +498,7 @@ Session B's `git worktree list` shows both sessions under the one handle, on `cl
 | File | Change |
 |---|---|
 | `src/tarelog/gateway/wi200.py` (PR #13, luca, 09-14) | `gateway: accept WI-200 frames with checksum`; lane 2 set to `CS=ON`; INT-WI200 not updated |
-| `sftp.py`, INT-HAULER-SFTP, handoff (codex branch, 09-15) | CSV upload with key authentication; INT-HAULER-SFTP `code: [src/tarelog/delivery/sftp.py]`, `verified: 2026-09-15`; handoff overwritten (next step: retry 3 times, then alert e-mail; Dead ends: parallel uploads rejected) |
+| `sftp.py`, INT-HAULER-SFTP, handoff (codex branch, 09-15) | CSV upload with key authentication; INT-HAULER-SFTP `code: [src/tarelog/delivery/sftp.py]`, a Gotchas line for `ChannelException: (1, 'Administratively prohibited')` written when the parallel upload failed, `verified: 2026-09-15`; handoff overwritten (next step: retry 3 times, then alert e-mail; Dead ends: parallel uploads rejected, pointing to INT-HAULER-SFTP) |
 | TASK-004 (main, luca, 09-15; session A, 09-16) | `TASK-004: release` (Key excerpt); then `TASK-004: claim` with `branch: claude-code/task-004-sftp-delivery` |
 | PR #15 (session A, 09-16) | retries and alert e-mail; INT-HAULER-SFTP and MODULE-REPORTS `verified: 2026-09-16`; TASK-004 `done`, `closed: 2026-09-16`; the inherited `handoff/TASK-004.md` is not deleted |
 | TASK-007 (main, session B, 09-16) | `TASK-007: claim`, `branch: claude-code/task-007-remove-chromium` |
@@ -577,10 +577,11 @@ mkb-check: 0 errors, 5 warnings
 $ git log -1 --format="%cs %h %an %s" -- src/tarelog/gateway/
 2026-09-14 5c2e9a7 luca gateway: accept WI-200 frames with checksum
 $ git grep -l -F "Administratively prohibited" -- docs/mkb/knowledge
+docs/mkb/knowledge/integrations/INT-HAULER-SFTP.md
 ```
 
 - W2: commit 5c2e9a7 adds an optional `*` and two hex digits before ETX, checked by XOR, and a new `FrameError: bad checksum`, none of which INT-WI200 describes, while SERVICE-GATEWAY refers to INT-WI200 for the frame format and stays correct.
-- W4: the handoff's Dead ends line is recorded nowhere else (the grep prints nothing) and stays true after the merge.
+- W4: the handoff's Dead ends line is already in INT-HAULER-SFTP (the grep prints its path), and its Watch out line ended with the task, so nothing moves before the handoff is deleted.
 - W5 and W6: the v0.8.0 bullet speaks of PDF reports, which ADR-003 and TASK-007 ended, and TASK-001's owner is a human, so gardening does not release the claim.
 
 ### What they wrote
@@ -588,7 +589,6 @@ $ git grep -l -F "Administratively prohibited" -- docs/mkb/knowledge
 | File | Change |
 |---|---|
 | `state/CURRENT.md` | v0.8.0 Health bullet deleted; Warnings `- 2026-09-22 claude-code: Nightly backup (TASK-001) is not running yet; copy data/tarelog.db by hand before any migration.` (the path is in backticks in the file) |
-| INT-HAULER-SFTP | the Dead ends line, rewritten as a Gotchas line; `verified` stays 2026-09-16, because nothing was re-checked |
 | `handoff/TASK-004.md` | deleted |
 | INT-WI200 | Checksum subsection under Contract, a checksum row in the field table, `FrameError: bad checksum` in Gotchas, "checksum" in the summary; `verified: 2026-09-22` |
 | SERVICE-GATEWAY | checked against the 09-14 change, still correct: `verified: 2026-09-22` |
@@ -602,16 +602,16 @@ The PR #17 description, one line per finding:
 mkb: gardening 2026-09-22
 
 1. W5: the v0.8.0 Health bullet (2026-09-04, PDF reports) contradicts ADR-003 and TASK-007 and is replaced by the 2026-09-17 bullet: deleted.
-2. W4: handoff/TASK-004.md reached main in PR #15 although TASK-004 is done: its Dead ends line (the partner server rejects parallel uploads) moved to INT-HAULER-SFTP Gotchas, then the handoff deleted.
+2. W4: handoff/TASK-004.md reached main in PR #15 although TASK-004 is done: its Dead ends line (the partner server rejects parallel uploads) is already in INT-HAULER-SFTP Gotchas, so the handoff is deleted.
 3. W2: src/tarelog/gateway/ changed on 2026-09-14 (luca, checksums) after INT-WI200 and SERVICE-GATEWAY (2026-09-03): INT-WI200 gains a Checksum section, SERVICE-GATEWAY is still correct; both verified 2026-09-22.
 4. W6: TASK-001 (luca) has no commit on luca/task-001-nightly-backup since 2026-09-04: a human's claim, so not released; @marta please decide. Warning bullet added: back up data/tarelog.db by hand.
 5. mkb-check after the fixes: 0 errors, 1 warning (the W6 of finding 4, waiting for marta); nothing to archive (oldest closed is 2026-09-02); the Handoff.md stub stays until the first gardening after 2026-10-01.
 ```
 
-The line moved by finding 2, as it stood in the handoff's Dead ends and as it now stands in INT-HAULER-SFTP, section Gotchas:
+The line checked by finding 2, as it stands in the handoff's Dead ends and in INT-HAULER-SFTP, section Gotchas, where Codex wrote it on 09-15:
 
 ```markdown
-- Uploading several report days in parallel, one SFTP session each: the second session fails with `ChannelException: (1, 'Administratively prohibited')`; the partner allows one session per account.
+- Uploading several report days in parallel, one SFTP session each: the second session fails with `ChannelException: (1, 'Administratively prohibited')`; the partner allows one session per account (INT-HAULER-SFTP).
 - `ChannelException: (1, 'Administratively prohibited')` on the second of two uploads started together -> the partner server allows one SFTP session per account and rejects parallel uploads -> upload files one after another over a single session, as `sftp.py` does.
 ```
 
@@ -694,6 +694,6 @@ A session that starts on 2026-09-23 without a task takes TASK-006, the first ID 
 | A developer leaves mid-task (S7) | partial work sits on a branch nobody knows about, and the next agent starts over | luca's release line names the branch; claude-code continues from its tip and its handoff |
 | Two sessions of one tool run at once and both update MODULE-REPORTS (S7) | they share a checkout, and the later merge silently wins | one worktree and one branch each, told apart by `branch`; a loud conflict on `verified`, resolved by re-checking the merged doc |
 | Code changes without its doc (S7, PR #13) | INT-WI200 stays wrong until a lane 2 incident | W2 flags it at the next weekly gardening (S8) |
-| A handoff outlives its task, and a deployment bullet goes stale (S7, S8) | stale notes on main read as current: customers still get PDF reports, and the lasting line is lost with the branch | W4 and W5: the line moves to INT-HAULER-SFTP, the handoff and the old bullet are deleted |
+| A handoff outlives its task, and a deployment bullet goes stale (S7, S8) | stale notes on main read as current: customers still get PDF reports, and the lasting line is lost with the branch | W4 and W5: the handoff and the old bullet are deleted; the lasting line has been in INT-HAULER-SFTP since the session that hit the error |
 | A human's claim goes quiet (S8) | an agent grabs luca's half-done backup, or the backup is forgotten | W6 goes to marta; gardening never releases a human's claim; a Warning says to back up by hand |
 | Out-of-scope work turns up (S2) | the parser task widens, or the finding is forgotten | TASK-006 is on main within minutes, and `TODO(TASK-006)` in the code points to it |

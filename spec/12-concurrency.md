@@ -14,7 +14,7 @@ Claims, blockers and questions are defined in [08-tasks-and-questions.md](08-tas
 - Exception: once the session that owns a PR branch has ended, a human reviewer MAY add commits to it (for example to set an ADR to `accepted` during review); never force-push it.
 - Two actors on one task at the same time is a claim violation, not a merge problem: the later actor stops.
 - Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); keep branches to a few days.
-- Exception: after a renumber ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) a branch takes the default branch by `git merge origin/main` until it merges.
+- Exception: a branch whose `git log origin/main..HEAD` shows a `mkb: renumber` commit ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) takes the default branch by `git merge origin/main`, never a rebase, until it merges.
 
 Rebasing a work branch at session start and before a push:
 
@@ -226,7 +226,7 @@ The cookbook covers MKB files only.
 | Conflict | Resolution |
 |---|---|
 | add/add on `tasks/TASK-NNN.md` or `questions/Q-NNN.md` in the coordination worktree | ID taken at creation: abort the rebase, allocate the next number, retry ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3) |
-| add/add on `decisions/ADR-NNN.md`, or on an ID already on a branch | ID collision: the branch merging second renumbers its own item ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
+| add/add on `decisions/ADR-NNN.md`, or on an ID already on a branch | your branch already has `mkb: renumber <that ID> -> <NEW-ID>` in `git log origin/main..HEAD`: `git rebase --abort`, then `git merge origin/main`; never renumber it again ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4 step 6); otherwise ID collision: the branch merging second renumbers its own item ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
 | add/add on a knowledge doc | same subject documented twice: merge the content into one doc |
 | a knowledge doc's `verified` line | both sides bumped it: keep the older date, unless you re-check the merged doc against the merged code |
 | task `status`, `owner`, `branch` lines | claim race: the default branch wins; the other actor stops and picks another task |
