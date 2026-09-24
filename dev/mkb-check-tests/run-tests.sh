@@ -283,6 +283,7 @@ t adr-next-empty; mkdir -p "$D/docs/adr2"; run --root "$D" --no-git --adr-dir do
 t adr-next-other-files; adrdir; mkdir -p "$D/docs/adr/assets"; printf 'png' > "$D/docs/adr/assets/2024-05-lane-layout.png"; printf 'x' > "$D/docs/adr/0009-notes.txt"; run --root "$D" --no-git --adr-dir docs/adr next ADR; is ADR-0005
 ginit 2026-09-01; grun --adr-dir docs/adr next ADR; is ADR-0005
 t adr-next-quoted-path; adrdir; ginit 2026-09-01; f="$D/docs/adr/0010-caff$(printf '\303\250').md"; printf '# x\n' > "$f"; gadd 2026-09-02 add10; rm "$f"; gadd 2026-09-03 del10; grun --adr-dir docs/adr next ADR; is ADR-0011
+t adr-leading-zeros; adrdir; for n in 0008 0010; do printf '# x\n' > "$D/docs/adr/$n-d.md"; done; echo "See ADR-0010." >> "$D/docs/mkb/project/OVERVIEW.md"; chk --adr-dir docs/adr; tot 0 0; run --root "$D" --no-git --adr-dir docs/adr next ADR; is ADR-0011
 t adr-in-mkb; mkdir -p "$D/docs/mkb/adr"; printf '# ADR 1\n\nSee TASK-003.\n<!-- guide: x -->\n' > "$D/docs/mkb/adr/0001-first.md"; chk --adr-dir docs/mkb/adr; has '^WARN W11 docs/mkb/adr/0001-first.md: '; cnt '^ERROR' 0; cnt '^WARN' 1
 
 # ---------- git-backed checks ----------

@@ -169,7 +169,7 @@ Humans resolve contradictions the same way.
 
 A session follows the MKB block in root `AGENTS.md` (copy-ready in `agent-instructions/AGENTS.tmpl.md`); [05-agent-workflow.md](05-agent-workflow.md) specifies every step.
 
-1. Fetch, fast-forward your branch to its pushed copy and rebase it onto the default branch, then read `INDEX.md` and `state/CURRENT.md` ([05-agent-workflow.md](05-agent-workflow.md) §5.2).
+1. Fetch, fast-forward your branch to its pushed copy, if any, and rebase it onto the default branch, then read `INDEX.md` and `state/CURRENT.md` ([05-agent-workflow.md](05-agent-workflow.md) §5.2).
 2. Take the task you were given, else the `in-progress` task whose branch you are on, if it is yours, else the first ID in `state/NEXT.md` whose task on the default branch is `todo` with `owner: none` or you; read the task and its handoff on the task's branch.
 3. Unless the task is already yours, claim it with a coordination commit on the default branch before touching code, then create and push the task branch ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4).
 4. Discover, don't browse: match `code` entries against the paths you will touch, grep for those paths, IDs and exact error text, triage hits by their first 16 lines, read at most 5 docs in full ([05-agent-workflow.md](05-agent-workflow.md) §5.3).

@@ -13,14 +13,14 @@ Claims, blockers and questions are defined in [08-tasks-and-questions.md](08-tas
 - Never push to or force-push a branch you did not create; a cloud agent and a local agent never share a branch.
 - Exception: once the session that owns a PR branch has ended, a human reviewer MAY add commits to it (for example to set an ADR to `accepted` during review); never force-push it.
 - Two actors on one task at the same time is a claim violation, not a merge problem: the later actor stops.
-- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); at session start, first run `git merge --ff-only origin/<your-branch>` so your branch keeps commits a reviewer added; if the fast-forward is refused, your branch and the remote branch both have new commits: stop and ask the human; keep branches to a few days.
+- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); at session start, first run `git merge --ff-only origin/<your-branch>` if that branch exists, so your branch keeps commits a reviewer added; if the fast-forward is refused, run `git log --oneline --cherry-pick --right-only HEAD...origin/<your-branch>`: no output means an earlier session rebased without pushing, so go on; any output means your branch and the remote branch both have new commits: stop and ask the human; keep branches to a few days.
 - Exception: a branch whose `git log origin/main..HEAD` shows a `mkb: renumber` commit ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) takes the default branch by `git merge origin/main`, never a rebase, until it merges.
 
 Rebasing a work branch at session start and before a push:
 
 ```sh
 git fetch origin
-git merge --ff-only origin/<your-branch>             # session start only: takes in commits a reviewer added
+git merge --ff-only origin/<your-branch>             # session start only, if the branch exists: takes in commits a reviewer added
 git rebase origin/main
 git push --force-with-lease
 ```
@@ -244,7 +244,7 @@ The cookbook covers MKB files only.
 | Conflict | Resolution |
 |---|---|
 | add/add on `tasks/TASK-NNN.md` or `questions/Q-NNN.md` in the coordination worktree | ID taken at creation: abort the rebase, allocate the next number, retry ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3) |
-| add/add on `decisions/ADR-NNN.md`, or on an ID already on a branch | your branch already has `mkb: renumber <that ID> -> <NEW-ID>` in `git log origin/main..HEAD`: `git rebase --abort`, then `git merge origin/main`; never renumber it again ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4 step 6); otherwise ID collision: the branch merging second renumbers its own item ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
+| add/add on `decisions/ADR-NNN.md`, or on an ID already on a branch | your branch already has `mkb: renumber <that ID> -> <NEW-ID>` in `git log origin/main..<your-branch>`: `git rebase --abort`, then `git merge origin/main`; never renumber it again ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4 step 6); otherwise ID collision: the branch merging second renumbers its own item ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
 | add/add on a knowledge doc | same subject documented twice: merge the content into one doc |
 | a knowledge doc's `verified` line | both sides bumped it: keep the older date, unless you re-check the merged doc against the merged code |
 | task `status`, `owner`, `branch` lines, both sides a claim | claim race: the default branch wins; the other actor stops and picks another task (a task it was given: it tells the human) |
@@ -311,7 +311,7 @@ TareLog session S7 shows a Codex-to-Claude-Code takeover of TASK-004.
 | Actor | Claims | New TASK and Q IDs | Branch |
 |---|---|---|---|
 | Human, or local agent that can push to the default branch | itself, as a coordination commit | allocates them and pushes the files at once ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3) | its own, in its own worktree |
-| Dispatched agent that cannot push to the default branch (for example Codex cloud and the Copilot coding agent) | the dispatching human, before dispatch, with `branch: pending` if the tool names the branch later ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) | never allocates them; writes `New task: <title>` or `Question for <handle>: <question>` lines, and the dispatching human creates the records ([05-agent-workflow.md](05-agent-workflow.md) §5.8) | the tool's own branch, recorded in `branch:` in its PR |
+| Dispatched agent that cannot push to the default branch (for example Codex cloud and the GitHub Copilot cloud agent) | the dispatching human, before dispatch, with `branch: pending` if the tool names the branch later ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) | never allocates them; writes `New task: <title>` or `Question for <handle>: <question>` lines, and the dispatching human creates the records ([05-agent-workflow.md](05-agent-workflow.md) §5.8) | the tool's own branch, recorded in `branch:` in its PR |
 
 A dispatched task that stays `in-progress` with `branch: pending` and no change to its file on the default branch for 7 days is a stale dispatch; the dispatching human releases it ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.5).
 

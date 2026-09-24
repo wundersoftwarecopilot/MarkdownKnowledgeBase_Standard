@@ -18,7 +18,7 @@ To adopt it, copy one profile into your project, fill five short files (seven in
 6. Constraints and accepted ADRs bind; descriptive docs follow the code; only humans accept ADRs.
 7. If nothing durable changed, update nothing; delete what is obsolete, because git remembers.
 
-A fix of at most 3 files that changes no interface, configuration, schema or dependency and is finished now takes the lite path: read the Warnings in `state/CURRENT.md` and the docs that cover your files, make the fix, correct any doc it makes wrong, update nothing else ([spec/05-agent-workflow.md](spec/05-agent-workflow.md) §5.4).
+A fix of at most 3 files that changes no interface, configuration, schema or dependency and is finished now takes the lite path: read the Warnings in `state/CURRENT.md` and the docs that discovery finds for your files and errors, make the fix, correct any doc it makes wrong, update nothing else ([spec/05-agent-workflow.md](spec/05-agent-workflow.md) §5.4).
 The specification in [spec/](spec/) details these rules; [spec/01-architecture.md](spec/01-architecture.md) §1.9 maps its chapters.
 
 ## Quick start
@@ -39,7 +39,7 @@ Choose the full profile if an upgrade trigger of [spec/11-profiles.md](spec/11-p
 ### Full profile
 
 - In step 2 use `<profile>` = `full`: INDEX then says `profile: full`, and `project/ARCHITECTURE.md` and `project/CONVENTIONS.md` are created too.
-- In step 3 also fill ARCHITECTURE (an agent drafts it from the code, a human reviews it) and CONVENTIONS; if `CONTRIBUTING.md` already covers conventions, delete `project/CONVENTIONS.md` and add an INDEX path override row instead ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.2).
+- In step 3 also fill ARCHITECTURE (an agent drafts it from the code, a human reviews it) and CONVENTIONS; if `CONTRIBUTING.md` already covers conventions, delete `project/CONVENTIONS.md` instead and add the conventions path override row with its Layout and Routing row changes ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.1 step 4).
 - Add a CI job that runs `sh docs/mkb/tools/mkb-check.sh` on a checkout with the full history of every branch (advisory, never blocking on warnings), and garden weekly ([spec/09-lifecycle.md](spec/09-lifecycle.md) §9.6).
 
 ### After adoption

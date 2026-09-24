@@ -61,9 +61,9 @@ if [ "$CMD" = next ]; then
   fi
   w=; [ -d "$d" ] && w=$(find "$d" -type f)
   printf '%s\n%s\n' "$h" "$w" | awk -v k="$KIND" -v a="$a" -v d="$d/" '
-    { sub(/\r$/, ""); sub(/^"/, ""); sub(/"$/, ""); p = $0; sub(/[^\/]*$/, "", p); sub(/.*\//, "") }
+    { sub(/\r$/, ""); sub(/^"/, ""); sub(/"$/, ""); p = $0; sub(/.*\//, ""); p = substr(p, 1, length(p) - length($0)) }
     a == 1 {
-      if ((p == d || substr(p, length(p) - length(d)) == "/" d) && /\.md$/ && match($0, /^[0-9]+/)) { v = substr($0, 1, RLENGTH) + 0; if (v > n) n = v; if (RLENGTH > w) w = RLENGTH }
+      if ((p == d || substr(p, length(p) - length(d)) == "/" d) && /\.md$/ && match($0, /^[0-9]+/)) { if (RLENGTH > w) w = RLENGTH; v = substr($0, 1, RLENGTH); sub(/^0+/, "", v); if (v + 0 > n) n = v + 0 }
       next
     }
     $0 ~ ("^" k "-[0-9]+\\.md$") { v = substr($0, length(k) + 2) + 0; if (v > n) n = v }
@@ -184,7 +184,7 @@ function file(f,  b, d, t, cls, s, nl, fm, fe, nk, n, i, j, k, v, x, p, st, ty, 
   if (f ~ /^docs\/mkb\// && tolower(b) ~ /^(agents|claude|gemini|agents\.override)\.md$/) err("E5", f, "tool instruction file inside docs/mkb")
   sub(/\.md$/, "", b); AD = ADR != "" && index(f, ADR "/") == 1
   if (AD && f == ADR "/" b ".md" && match(b, /^[0-9]+/)) {
-    k = substr(b, 1, RLENGTH) + 0
+    k = substr(b, 1, RLENGTH); sub(/^0+/, "", k); k += 0
     if (k in ADRN) err("E1", f, "leading number " k " also used by " ADRN[k]); else ADRN[k] = f
   }
   if (f !~ /^docs\/mkb\// || f ~ /^docs\/mkb\/templates\//) return
@@ -336,7 +336,7 @@ END {
     if (!(b in HAVE)) warn("W13", NP, b " is listed but its task is missing"); else if (TS[b] ~ /^(done|dropped)$/) warn("W13", NP, b " is listed but " TS[b])
   }
   for (i = 1; i <= nr; i++) {
-    b = RI[i]; k = substr(b, 5) + 0
+    b = RI[i]; k = substr(b, 5); sub(/^0+/, "", k); k += 0
     if (!(b in HAVE) && !(b ~ /^ADR-/ && (k in ADRN))) warn("W10", RF[i], b " is referenced but has no file")
   }
   printf "mkb-check: %d errors, %d warnings\n", ne, nw

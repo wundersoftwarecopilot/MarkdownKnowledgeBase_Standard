@@ -44,7 +44,7 @@ Reading aids for this chapter:
 ## 5.2 Before modifying code
 
 1. Update and read:
-   - `git fetch`, then `git merge --ff-only origin/<your-branch>` (it takes in commits a reviewer added; refused: stop and ask the human, [12-concurrency.md](12-concurrency.md) §12.1), then rebase your branch onto `origin/main` (on `main` itself: only `git pull --rebase`, no fast-forward; a branch with a `mkb: renumber` commit merges instead, [12-concurrency.md](12-concurrency.md) §12.1), so that you see the claims, answers and docs that landed since your branch was cut;
+   - `git fetch`, then `git merge --ff-only origin/<your-branch>` if that branch exists (it takes in commits a reviewer added; refused: [12-concurrency.md](12-concurrency.md) §12.1), then rebase your branch onto `origin/main` (on `main` itself: only `git pull --rebase`, no fast-forward; a branch whose `git log origin/main..HEAD` shows a `mkb: renumber` commit merges instead, [12-concurrency.md](12-concurrency.md) §12.1), so that you see the claims, answers and docs that landed since your branch was cut;
    - `docs/mkb/INDEX.md` (skip if already read in this session);
    - `docs/mkb/state/CURRENT.md`;
    - `docs/mkb/state/NEXT.md`, only if you must choose a task.
@@ -266,7 +266,7 @@ New task: Per-customer report time zone
 Copy this list into a session prompt or a PR template; each line points to the section that holds the rule.
 
 ```markdown
-- [ ] `git fetch`; `git merge --ff-only origin/<your-branch>`; rebase onto `origin/main`; read INDEX.md and state/CURRENT.md (§5.2)
+- [ ] `git fetch`; `git merge --ff-only origin/<your-branch>` if that branch exists; rebase onto `origin/main`; read INDEX.md and state/CURRENT.md (§5.2)
 - [ ] At most 3 files, no interface, configuration, schema or dependency change, done now: lite path (§5.4)
 - [ ] Work item: the given task, else your `in-progress` task on this branch, else the first eligible ID in state/NEXT.md, else ask; outlasts the session: create a task
 - [ ] Read the task, then its handoff; verify the handoff against `git log` and `git status` (§6.6)

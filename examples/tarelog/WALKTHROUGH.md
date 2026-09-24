@@ -160,6 +160,8 @@ $ d="$(mktemp -d)" && git worktree add --detach "$d" origin/main
 HEAD is now at 8e41b07 TASK-002: claim
 $ sh docs/mkb/tools/mkb-check.sh next TASK
 TASK-005
+$ ls "$d/docs/mkb/tasks"    # TASK-005.md must not be there yet: never overwrite it (allocation step 6)
+TASK-001.md  TASK-002.md  TASK-003.md  TASK-004.md
 $ cp docs/mkb/templates/TASK.md "$d/docs/mkb/tasks/TASK-005.md"    # then fill it in
 $ git -C "$d" add -A && git -C "$d" commit -q -m "TASK-005: add"
 $ git -C "$d" push origin HEAD:main
@@ -173,7 +175,7 @@ error: could not apply 2c9f1e4... TASK-005: add
 $ git -C "$d" rebase --abort
 $ sh docs/mkb/tools/mkb-check.sh next TASK
 TASK-006
-$ git -C "$d" reset -q --hard origin/main    # write TASK-006.md, same title and body
+$ git -C "$d" reset -q --hard origin/main    # TASK-006.md is not there yet: write it, same title and body
 $ git -C "$d" add -A && git -C "$d" commit -q -m "TASK-006: add" && git -C "$d" push origin HEAD:main
 To git.example.com:northfield/tarelog.git
    5d0a3c8..f17b2e9  HEAD -> main
@@ -420,7 +422,7 @@ So the fact goes to a new INT doc and the choice to a new ADR that supersedes AD
 | TASK-007 (main, claude-code) | `TASK-007: add`: "Remove the Chromium PDF pipeline", `normal`, `todo`, `owner: none`, before ADR-003 cites it; it names no ADR yet, because ADR-003 exists only on the branch |
 | INT-HAULER-SFTP (PR #14) | new: key authentication "(resolves Q-001)", key in the vault at `tarelog/sftp-key`, `/inbound/tarelog/`, 06:00; no `code` yet; `verified: 2026-09-10` |
 | ADR-003 (PR #14) | new, drafted `proposed` by claude-code; marta accepts it in review: `deciders: [marta]`, `date: 2026-09-10`, `supersedes: [ADR-002]` |
-| ADR-002, MODULE-REPORTS, ARCHITECTURE, TASK-007 (PR #14) | ADR-002 gets only `status: superseded` and `superseded_by: ADR-003`; the other three now cite ADR-003, TASK-007 in its Goal and `related` (its owner is `none`, so anyone may edit it) |
+| ADR-002, MODULE-REPORTS, ARCHITECTURE, TASK-007 (PR #14) | ADR-002 gets only `status: superseded` and `superseded_by: ADR-003`; the other three now cite ADR-003 (TASK-007 in its Goal and `related`; its owner is `none`, so anyone may edit it) |
 | TASK-004, Q-001 (PR #14) | TASK-004: two criteria rewritten "(resolves Q-001)", `blocked_by` removed, back to `in-progress` because `branch` is set; Q-001 deleted; commit `Q-001: resolved -> ADR-003, INT-HAULER-SFTP, TASK-004` |
 | NEXT, CURRENT (main, marta, after the merge) | NEXT: TASK-004, TASK-007, TASK-006, TASK-005; Focus `- 2026-09-10 marta: CSV delivery to Beta Haulage live before 2026-10-01 (TASK-004, TASK-007).` |
 
