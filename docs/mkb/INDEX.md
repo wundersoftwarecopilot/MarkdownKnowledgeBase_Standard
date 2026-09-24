@@ -19,7 +19,7 @@ Do not read it all: follow the routes below and find records by ID with `git gre
 | Path | Holds | Exists |
 |---|---|---|
 | [project/OVERVIEW.md](project/OVERVIEW.md) | purpose, users, scope, stack, commands, glossary | always |
-| `project/ARCHITECTURE.md` | system context, components, data flow, deployment, code map | when needed |
+| [project/ARCHITECTURE.md](project/ARCHITECTURE.md) | system context, components, data flow, deployment, code map | always |
 | [project/CONSTRAINTS.md](project/CONSTRAINTS.md) | non-negotiable rules with sources (normative) | always |
 | [project/CONVENTIONS.md](project/CONVENTIONS.md) | project conventions not covered elsewhere (normative) | always |
 | [state/CURRENT.md](state/CURRENT.md) | health, focus and warnings as dated bullets | always |
@@ -42,7 +42,7 @@ Do not read it all: follow the routes below and find records by ID with `git gre
 | You need | Read | Find it with |
 |---|---|---|
 | What the project is, stack, commands | project/OVERVIEW.md, then `README.md` | - |
-| How the parts fit and where code lives | project/ARCHITECTURE.md (if it exists) | component table, column Doc |
+| How the parts fit and where code lives | project/ARCHITECTURE.md | component table, column Doc |
 | What must never be broken | project/CONSTRAINTS.md, then accepted ADRs | `git grep -l "^status: accepted" -- docs/mkb/decisions` |
 | How code is written here | project/CONVENTIONS.md | - |
 | Design contract, checker tests, review data | `dev/` (project/OVERVIEW.md, section Stack) | - |

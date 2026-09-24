@@ -19,8 +19,10 @@ Out of scope: tooling beyond the checker; monorepos with several MKBs (`spec/01-
 ## Commands
 - Links, anchors and front matter of every Markdown file: `python dev/check_links.py .`
 - Checker on the example: `sh templates/full/docs/mkb/tools/mkb-check.sh --root examples/tarelog --no-git --today 2026-09-23 --strict`
-- Checker test suite (several minutes): `sh dev/mkb-check-tests/run-tests.sh`
-- Checker on this repository's own MKB: `sh docs/mkb/tools/mkb-check.sh`
+- Checker test suite (several minutes; no per-case filter): `sh dev/mkb-check-tests/run-tests.sh`; a first argument such as `dash` runs the checker under that shell, and `CHK=<path>` tests another copy of the checker.
+- Checker on any tree, for example a hand-made fixture: `sh templates/full/docs/mkb/tools/mkb-check.sh --root <dir> --no-git --today YYYY-MM-DD`
+- Checker on this repository's own MKB: `sh docs/mkb/tools/mkb-check.sh`; next free ID: `sh docs/mkb/tools/mkb-check.sh next TASK` (or `Q`, `ADR`).
+- Re-copy the shared files after editing them under `templates/full/docs/mkb/`: `for d in templates/minimal/docs/mkb examples/tarelog/docs/mkb docs/mkb; do cp templates/full/docs/mkb/agents/RULES.md $d/agents/; cp templates/full/docs/mkb/tools/mkb-check.sh $d/tools/; cp templates/full/docs/mkb/templates/*.md $d/templates/; done`
 
 ## Glossary
 - **Brief**: `Prompt_MarkdownKnowledgeBase_Standard.md`, the original requirements.
