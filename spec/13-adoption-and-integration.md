@@ -233,7 +233,7 @@ Root `CLAUDE.md` imports `AGENTS.md`; its copy-ready form is [agent-instructions
 
 ### 13.5.3 Per-tool wiring
 
-Facts verified 2026-09-23; UNVERIFIED marks what could not be confirmed.
+Facts verified 2026-09-23, or on the later date a Status gives; UNVERIFIED marks what could not be confirmed.
 Tool loading rules change between versions, so the wiring is re-checked at gardening when tool versions change (§13.5.5).
 
 | Tool | What it loads natively | MKB wiring | Status |
@@ -255,7 +255,7 @@ The block is 30 lines including its markers, well inside all three.
 
 ### 13.5.4 What coordination commits need from a local agent tool
 
-Facts verified 2026-09-23; items are UNVERIFIED unless their Status says otherwise.
+Facts verified 2026-09-23, or on the later date a Status gives; items are UNVERIFIED unless their Status says otherwise.
 Every item is checked at adoption.
 
 | Tool | Needs | Status |

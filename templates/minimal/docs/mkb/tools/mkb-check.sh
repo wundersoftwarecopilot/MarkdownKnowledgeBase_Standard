@@ -39,8 +39,8 @@ if [ "$NOGIT" = 0 ] && ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; th
   NOGIT=1; echo "mkb-check: not a git work tree; running as with --no-git" >&2
 fi
 if [ "$NOGIT" = 0 ] && [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
-  [ "$CMD" = next ] && usage "shallow clone: run git fetch --unshallow first"
-  NOGIT=1; echo "mkb-check: shallow clone; running as with --no-git" >&2
+  if [ "$CMD" = next ]; then [ "$KIND" = Q ] && usage "shallow clone: run git fetch --unshallow first"
+  else NOGIT=1; echo "mkb-check: shallow clone; running as with --no-git" >&2; fi
 fi
 
 # next TASK|ADR|Q: 1 + the highest number ever added on any fetched ref, plus files not yet committed (docs/mkb/agents/RULES.md, section 4).
@@ -104,14 +104,14 @@ function idtype(s,  i) { for (i = 1; i <= 8; i++) if (idok(TY[i], s)) return TY[
 function q(s) { gsub(/\047/, "\047\\\047\047", s); return "\047" s "\047" }
 function run(c,  r, x) { r = ""; c = c " 2>/dev/null"; while ((c | getline x) > 0) if (x > r) r = x; close(c); return r }
 function bads(x) { return x ~ /: |:$| #|^[][{}>|*&!%@`#,"\047]|^[-?:]( |$)/ }
-function fence(s,  c, n, bq, x) {
-  match(s, /^[ \t]*(>[ \t]*)*/); x = substr(s, 1, RLENGTH); s = substr(s, RLENGTH + 1); bq = gsub(/>/, "", x)
+function fence(s,  c, n, bq, x, ind) {
+  match(s, /^[ \t]*(>[ \t]*)*/); x = substr(s, 1, RLENGTH); s = substr(s, RLENGTH + 1); bq = gsub(/>/, "", x); ind = length(x)
   if (FC != "" && bq < FQ) FC = ""
   c = substr(s, 1, 1)
   if (c != "`" && c != "~") return FC != ""
   n = 1; while (substr(s, n + 1, 1) == c) n++
-  if (FC == "") { if (n < 3 || (c == "`" && index(substr(s, n + 1), "`"))) return 0; FC = c; FL = n; FQ = bq; return 1 }
-  if (c == FC && n >= FL && bq == FQ && substr(s, n + 1) ~ /^[ \t]*$/) FC = ""
+  if (FC == "") { if (n < 3 || (c == "`" && index(substr(s, n + 1), "`"))) return 0; FC = c; FL = n; FQ = bq; FI = ind; return 1 }
+  if (c == FC && n >= FL && bq == FQ && ind <= FI + 3 && substr(s, n + 1) ~ /^[ \t]*$/) FC = ""
   return 1
 }
 function refs(f, s,  t, b, p) {

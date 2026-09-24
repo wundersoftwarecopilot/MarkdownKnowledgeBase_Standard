@@ -42,6 +42,8 @@ Choose the full profile if an upgrade trigger of [spec/11-profiles.md](spec/11-p
 - In step 3 also fill ARCHITECTURE (an agent drafts it from the code, a human reviews it) and CONVENTIONS; if `CONTRIBUTING.md` already covers conventions, delete `project/CONVENTIONS.md` and add an INDEX path override row instead ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.2).
 - Add a CI job that runs `sh docs/mkb/tools/mkb-check.sh` on a checkout with the full history of every branch (advisory, never blocking on warnings), and garden weekly ([spec/09-lifecycle.md](spec/09-lifecycle.md) §9.6).
 
+### After adoption
+
 Once the adoption PR is merged, give each local agent tool except Aider, whose claims you make, the git and temp-directory permissions that claims need, and watch its first claim ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.5.4); an agent that cannot fetch or push stops before coding and asks you to push the claim.
 After adoption, agents follow the block in `AGENTS.md`; people start with [spec/01-architecture.md](spec/01-architecture.md) and the worked example [examples/tarelog/WALKTHROUGH.md](examples/tarelog/WALKTHROUGH.md).
 

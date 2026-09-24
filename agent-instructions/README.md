@@ -61,7 +61,7 @@ Tool pointers and other files:
 
 ## Per-tool wiring
 
-Facts verified 2026-09-23; UNVERIFIED marks what could not be confirmed.
+Facts verified 2026-09-23, or on the later date a Status gives; UNVERIFIED marks what could not be confirmed.
 
 | Tool | What it loads natively | MKB wiring | Status |
 |---|---|---|---|
@@ -82,7 +82,7 @@ The block is 30 lines including its markers, well inside all three.
 
 ## What coordination commits need from a local agent tool
 
-Facts verified 2026-09-23; items are UNVERIFIED unless their Status says otherwise.
+Facts verified 2026-09-23, or on the later date a Status gives; items are UNVERIFIED unless their Status says otherwise.
 Every item is checked at adoption (section Verifying per tool).
 
 | Tool | Needs | Status |
