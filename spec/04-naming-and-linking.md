@@ -78,7 +78,7 @@ POSIX sh pipeline; it prints the next ID, `TASK-001` when none exists:
 ```sh
 git fetch --all --quiet
 git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/tasks \
-  | grep -oE 'TASK-[0-9]+' | awk -F- '$2+0 > n { n = $2+0 } END { printf "TASK-%03d\n", n+1 }'
+  | grep -oE 'TASK-[0-9]+' | awk -F- '{ sub(/^0+/, "", $2) } $2+0 > n { n = $2+0 } END { printf "TASK-%03d\n", n+1 }'
 ```
 
 PowerShell equivalent of the task pipeline:
@@ -98,7 +98,7 @@ Adopted ADR directory (sh; prints the next ID at the directory's width; `mkb-che
 
 ```sh
 git log --all --no-renames --diff-filter=A --name-only --format= -- docs/adr | grep -E '^"?docs/adr/[0-9][^/]*\.md"?$' | sed 's|.*/||' \
-  | grep -oE '^[0-9]+' | awk '$1+0 > n { n = $1+0 } { w = length($1) } END { f = "ADR-%0" w "d\n"; printf f, n+1 }'
+  | grep -oE '^[0-9]+' | awk '{ if (length($1) > w) w = length($1); sub(/^0+/, "", $1) } $1+0 > n { n = $1+0 } END { f = "ADR-%0" w "d\n"; printf f, n+1 }'
 ```
 
 Numbers are never reused, including numbers of deleted questions and archived tasks.

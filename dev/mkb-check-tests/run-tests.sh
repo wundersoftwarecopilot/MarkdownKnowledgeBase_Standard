@@ -5,7 +5,7 @@ SHX=${1:-sh}
 CHK=${CHK:-/c/Wundev/MarkdownKnowledgeBase_MKB/templates/full/docs/mkb/tools/mkb-check.sh}
 HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/fixture.sh"
-W=${TMPDIR:-/tmp}/mkb-check-work-$SHX   # outside any git work tree: two cases need that
+W=${TMPDIR:-/tmp}/mkb-check-work-$SHX-$$   # unique per run; outside any git work tree: two cases need that
 rm -rf "$W"; mkdir -p "$W"
 PASS=0 FAIL=0 CASE= N=0
 TD=2026-09-23
@@ -281,6 +281,7 @@ t adr-next-history; adrdir; ginit 2026-09-01; printf '# x\n' > "$D/docs/adr/0007
 grun --adr-dir docs/adr next ADR; is ADR-0008; run --root "$D" --no-git --adr-dir docs/adr next ADR; is ADR-0005
 t adr-next-empty; mkdir -p "$D/docs/adr2"; run --root "$D" --no-git --adr-dir docs/adr2 next ADR; is ADR-001
 t adr-next-other-files; adrdir; mkdir -p "$D/docs/adr/assets"; printf 'png' > "$D/docs/adr/assets/2024-05-lane-layout.png"; printf 'x' > "$D/docs/adr/0009-notes.txt"; run --root "$D" --no-git --adr-dir docs/adr next ADR; is ADR-0005
+t adr-next-backslash; adrdir; run --root "$D" --no-git --adr-dir '.\docs\adr\' next ADR; is ADR-0005
 ginit 2026-09-01; grun --adr-dir docs/adr next ADR; is ADR-0005
 t adr-next-quoted-path; adrdir; ginit 2026-09-01; f="$D/docs/adr/0010-caff$(printf '\303\250').md"; printf '# x\n' > "$f"; gadd 2026-09-02 add10; rm "$f"; gadd 2026-09-03 del10; grun --adr-dir docs/adr next ADR; is ADR-0011
 t adr-leading-zeros; adrdir; for n in 0008 0010; do printf '# x\n' > "$D/docs/adr/$n-d.md"; done; echo "See ADR-0010." >> "$D/docs/mkb/project/OVERVIEW.md"; chk --adr-dir docs/adr; tot 0 0; run --root "$D" --no-git --adr-dir docs/adr next ADR; is ADR-0011
@@ -313,4 +314,5 @@ OUT=$(cd "$D/src/core" && "$SHX" "$CHK" --today $TD 2>&1); tot 0 0
 t not-a-repo-note; run --root "$D" --today $TD; tot 0 0; OUT=$ERR; has 'not a git work tree'
 
 echo "RESULT ($SHX): $PASS passed, $FAIL failed, $N cases"
+[ "$FAIL" = 0 ] && rm -rf "$W"
 [ "$FAIL" = 0 ]

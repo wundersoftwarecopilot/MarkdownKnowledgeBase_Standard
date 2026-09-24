@@ -28,7 +28,7 @@ What a session reads:
 | `docs/mkb/state/NEXT.md` | only when you must choose a task |
 | the task file and its handoff | when you work on a task |
 | docs found by discovery (§5.3) | front matter first; at most 5 in full |
-| `docs/mkb/agents/RULES.md` | only the section a step needs (`git grep -n "^## " -- docs/mkb/agents/RULES.md` lists them); never whole |
+| `docs/mkb/agents/RULES.md` | section 16, Project-specific rules, every session; any other section only when a step needs it (`git grep -n "^## " -- docs/mkb/agents/RULES.md` lists them); never whole |
 | `tasks/archive/`, `templates/`, superseded or rejected ADRs, git history | never by default |
 
 Adopting projects carry the rules of this chapter as sections 1 to 3 of `docs/mkb/agents/RULES.md` ([templates/full/docs/mkb/agents/RULES.md](../templates/full/docs/mkb/agents/RULES.md)).

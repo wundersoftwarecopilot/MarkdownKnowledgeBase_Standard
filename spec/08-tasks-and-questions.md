@@ -105,7 +105,7 @@ A claim visible to others before coding is a MUST in the full profile and a SHOU
 2. `git show origin/main:docs/mkb/tasks/TASK-NNN.md | head -n 16` MUST show `status: todo` with `owner: none` or your handle.
    PowerShell: `git show origin/main:docs/mkb/tasks/TASK-NNN.md | Select-Object -First 16`.
    Never judge by your local copy.
-   Otherwise (`blocked`, or claimed by another actor or session), do not claim the task or code on it: tell the human, naming its `blocked_by` or `owner`.
+   Otherwise (`blocked`, or claimed by another actor or session), do not claim the task or code on it: pick another task; for a task you were given, tell the human, naming its `blocked_by` or `owner`.
 3. Make the claim as a coordination commit in a temporary worktree of `origin/main`, or, for a human, in a clean `main` (both in [12-concurrency.md](12-concurrency.md) §12.2.1), never on a work branch.
    The recipe fetches again, so first repeat the step-2 check on `docs/mkb/tasks/TASK-NNN.md` in the worktree where you commit; if it no longer shows `status: todo` with `owner: none` or your handle, the task was claimed since step 2: remove the temporary worktree and pick another task.
    Then set `status: in-progress`, `owner: <you>`, `branch: <you>/task-nnn-<slug>`, and `code` with the paths you expect to touch (SHOULD, so that others' overlap checks see them, [05-agent-workflow.md](05-agent-workflow.md) §5.3); commit `TASK-NNN: claim`; `git push origin HEAD:main`.

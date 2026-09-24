@@ -13,7 +13,7 @@ Do not read it all: follow the routes below and find records by ID with `git gre
 1. [state/CURRENT.md](state/CURRENT.md): the condition of the default branch; read it every session.
 2. Your task `tasks/TASK-NNN.md` and, on the task's branch, its handoff `handoff/TASK-NNN.md`.
 3. No task yet: the first ID in [state/NEXT.md](state/NEXT.md) whose task on the default branch is `todo` with `owner: none` or you.
-4. How to read and write the MKB: [agents/RULES.md](agents/RULES.md); `git grep -n "^## " -- docs/mkb/agents/RULES.md` lists its sections, read only the one you need.
+4. How to read and write the MKB: [agents/RULES.md](agents/RULES.md); `git grep -n "^## " -- docs/mkb/agents/RULES.md` lists its sections, read only the one you need, and section 16, Project-specific rules, every session.
 
 ## Layout
 | Path | Holds | Exists |

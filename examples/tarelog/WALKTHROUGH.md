@@ -68,7 +68,7 @@ Goal: adopt the MKB in the full profile, since two humans and two agent tools wi
 ### What they read
 
 The repository has no AGENTS.md, CLAUDE.md, `.gitattributes`, ADR directory or documentation site, so only `README.md` and `CONTRIBUTING.md` are adopted in place.
-Knowledge docs are written only for the most-changed components: `git log --format= --name-only | sort | uniq -c | sort -rn | head -n 3` puts `Handoff.md` (61 commits), `src/tarelog/gateway/reader.py` (27) and `src/tarelog/tickets/store.py` (19) on top.
+Knowledge docs written from the code are limited to the most-changed components: `git log --format= --name-only | sort | uniq -c | sort -rn | head -n 3` puts `Handoff.md` (61 commits), `src/tarelog/gateway/reader.py` (27) and `src/tarelog/tickets/store.py` (19) on top.
 Then marta and claude-code read Handoff.md once, whole, and sort every paragraph (Key excerpt).
 
 ### What they wrote
@@ -79,7 +79,7 @@ Then marta and claude-code read Handoff.md once, whole, and sort every paragraph
 | `project/*.md` | OVERVIEW; ARCHITECTURE drafted by claude-code from the code, reviewed by marta, `verified: 2026-09-01`; CONSTRAINTS with the three rules marta states in the session; CONVENTIONS with only what `CONTRIBUTING.md` lacks |
 | `state/*.md` | one bullet each in Health (v0.7.2, reports by hand), Focus (TASK-003, TASK-004) and Warnings (lane 2, TASK-002); NEXT: TASK-002, TASK-003, TASK-004, TASK-001 |
 | ADR-001, TASK-001 to TASK-004, SERVICE-GATEWAY, DB-TICKETS, TS-SQLITE-LOCKED | ADR-001 backfilled (`accepted`, `date: 2026-03-10`, `deciders: [marta]`); tasks `todo`, `owner: none`; knowledge `verified: 2026-09-01` |
-| `Handoff.md`, `AGENTS.md`, `CLAUDE.md`, `.gitattributes` | the 3-line stub; three project notes plus the MKB block; `@AGENTS.md`; the four MKB lines |
+| `Handoff.md`, `AGENTS.md`, `CLAUDE.md`, `.gitattributes` | the 3-line stub; three project notes plus the MKB block; the lines of `CLAUDE.tmpl.md` (`@AGENTS.md`, then the fallback line); the four MKB lines |
 | TASK-001 (main, luca, after the merge) | `TASK-001: claim`, committed in luca's clean `main` (no temporary worktree): `in-progress`, `branch: luca/task-001-nightly-backup`, `code: [src/tarelog/tickets/backup.py]`, a Notes line on the NAS mount |
 
 The tasks ride PR #10 instead of coordination commits, because no other actor can allocate a TASK ID before the adoption merges; mkb-check reports 0 errors before the commit `mkb: adopt MKB v1.0 (full profile)`.
@@ -109,7 +109,7 @@ The triage mapping, kept in the PR #10 description and never in the MKB:
 - A monolithic Handoff.md is migrated once by triage and replaced by a stub for 30 days: [spec/13-adoption-and-integration.md](../../spec/13-adoption-and-integration.md) §13.3.
 - A past decision found in the old file becomes an accepted ADR with a named decider: [spec/07-decisions.md](../../spec/07-decisions.md) §7.8.
 - Health holds exceptions and deployed versions, never "CI green": [spec/08-tasks-and-questions.md](../../spec/08-tasks-and-questions.md) §8.12.
-- At adoption, knowledge docs only for the most-changed components: [spec/09-lifecycle.md](../../spec/09-lifecycle.md) §9.3.
+- At adoption, knowledge docs written from the code only for the 3 most-changed components; docs holding migrated facts are not counted: [spec/09-lifecycle.md](../../spec/09-lifecycle.md) §9.3.
 
 ## S2 2026-09-02: a parser, a new task and an ID collision
 

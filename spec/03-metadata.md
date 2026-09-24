@@ -27,8 +27,8 @@ Front matter MUST NOT appear on: `project/OVERVIEW.md`, `project/CONSTRAINTS.md`
    Prose may use `@marta`; front matter never does.
 8. Optional keys with no value are omitted entirely.
    Never write `key:` with an empty value and never write `key: []`.
-9. A scalar MUST NOT contain `: ` or ` #`, nor end with `:`; rephrase with a dash instead.
-   It MUST NOT start with `[`, `]`, `{`, `}`, `>`, `|`, `*`, `&`, `!`, `%`, `@`, `#`, `,`, `"`, `'` or a backtick, nor with `-` or `?` followed by a space or the end of the value (except list values, which are flow lists, and `mkb_version`, which rule 6 quotes).
+9. A scalar MUST NOT contain `: ` or ` #` (a tab counts as a space), nor end with `:`; rephrase with a dash instead.
+   It MUST NOT start with `[`, `]`, `{`, `}`, `>`, `|`, `*`, `&`, `!`, `%`, `@`, `#`, `,`, `"`, `'` or a backtick, nor with `-` or `?` followed by a space, a tab or the end of the value (except list values, which are flow lists, and `mkb_version`, which rule 6 quotes).
 10. At most 12 keys, so that the first 16 lines of a file show the front matter and the H1 (12 keys, 2 delimiters, the H1, and room for the tolerated blank line).
 
 ## 3.3 Field dictionary

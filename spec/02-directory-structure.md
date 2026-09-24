@@ -158,7 +158,7 @@ The complete skeletons are `templates/full/docs/mkb/INDEX.md` and `templates/min
 | Section | Holds |
 |---|---|
 | (three lines under the H1) | what the folder is, that code and tests are the truth for what the system does, and that nobody reads it all |
-| Start here | the first reads, in order: `state/CURRENT.md`; your task and, on its branch, its handoff; no task yet: the first ID in `state/NEXT.md` whose task on the default branch is `todo` with `owner: none` or you; only the section of `agents/RULES.md` you need |
+| Start here | the first reads, in order: `state/CURRENT.md`; your task and, on its branch, its handoff; no task yet: the first ID in `state/NEXT.md` whose task on the default branch is `todo` with `owner: none` or you; only the section of `agents/RULES.md` you need, and its section 16, Project-specific rules |
 | Layout | one row per path of §2.1 with what it holds and whether it exists `always` or `when needed`; files that exist are relative links, the others backticked paths |
 | Routing | one row per need: what to read and the `git grep` command that finds it (§2.4.3) |
 | Authority | the three orders and the never-authoritative list of [01-architecture.md](01-architecture.md) §1.7.1 |

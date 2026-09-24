@@ -129,7 +129,7 @@ Run it after step 1 of section 1 (branch rebased onto `origin/main`), so the wor
 ```sh
 git fetch --all --quiet
 git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/tasks \
-  | grep -oE 'TASK-[0-9]+' | awk -F- '$2+0 > n { n = $2+0 } END { printf "TASK-%03d\n", n+1 }'
+  | grep -oE 'TASK-[0-9]+' | awk -F- '{ sub(/^0+/, "", $2) } $2+0 > n { n = $2+0 } END { printf "TASK-%03d\n", n+1 }'
 ```
 ```powershell
 git fetch --all --quiet
@@ -189,7 +189,7 @@ Gaps are normal.
 - Edit rights: only the owner edits a claimed task; anyone may append a Notes line; anyone may edit a task whose owner is `none`; the lead may edit any task; whoever promotes an answer (section 6) may edit the Goal and Acceptance criteria of the tasks the question blocks, marking each changed line `(resolves Q-NNN)`, and may remove `blocked_by` and set `status` as in T8.
 ### Claim (direct push to the default branch allowed)
 1. `git fetch origin`.
-2. `git show origin/main:docs/mkb/tasks/TASK-NNN.md | head -n 16` MUST show `status: todo` with `owner: none` or your handle. Never judge by your local copy. Otherwise (blocked, or claimed by another actor or session), do not claim the task or code on it: tell the human, naming its `blocked_by` or `owner`.
+2. `git show origin/main:docs/mkb/tasks/TASK-NNN.md | head -n 16` MUST show `status: todo` with `owner: none` or your handle. Never judge by your local copy. Otherwise (blocked, or claimed by another actor or session), do not claim the task or code on it: pick another task; for a task you were given, tell the human, naming its `blocked_by` or `owner`.
 3. Make the claim as a coordination commit in a temporary worktree of `origin/main` (section 11 recipe; a human may use a clean `main`, section 11), never on a work branch. The recipe fetches again, so first repeat the step-2 check on `docs/mkb/tasks/TASK-NNN.md` in the worktree where you commit; if it no longer shows `status: todo` with `owner: none` or your handle, the task was claimed since step 2: remove the temporary worktree and pick another task. Then set `status: in-progress`, `owner: <you>`, `branch: <you>/task-nnn-<slug>`, and `code` with the paths you expect to touch (SHOULD, so that others' overlap checks see them, section 2); commit `TASK-NNN: claim`; `git push origin HEAD:main`.
 4. Push rejected: fetch. If `git rev-list --count HEAD..origin/main` prints `0`, nobody pushed first and the server refuses direct pushes (`! [remote rejected]`): the default branch is protected; do not retry; remove the temporary worktree (on `main`: `git reset --keep origin/main`) and claim as in the protected default branch subsection. Otherwise rebase the temporary worktree onto `origin/main` and push again. A conflict in `TASK-NNN.md` means someone else claimed it: `git rebase --abort`, remove the temporary worktree (on `main`: `git reset --keep origin/main`), pick another task. If after the rebase `git rev-list --count origin/main..HEAD` prints `0`, your claim commit was dropped because an identical claim (same handle, another session of your tool) is already there: the task is taken; pick another task. For a task you were given, "pick another task" in steps 3 and 4 means: do not code on it; tell the human, naming its `owner`.
 5. Create your branch `<you>/task-nnn-<slug>` from the updated `origin/main` (in its own worktree when agents work in parallel locally) and push it at once. Takeover: if the task's Notes contain `released; partial work on branch <old-branch>`, read `git show origin/<old-branch>:docs/mkb/handoff/TASK-NNN.md`, create your branch from that tip instead (`git switch -c <you>/task-nnn-<slug> origin/<old-branch>`), rebase it onto `origin/main` (merge instead if `git log origin/main..HEAD` shows a `mkb: renumber` commit, section 11), push it, and verify the handoff against it; the handoff is now yours to overwrite; never push to the old branch.
@@ -383,7 +383,7 @@ It is FORBIDDEN on `project/OVERVIEW.md`, `project/CONSTRAINTS.md`, `project/CON
 6. `mkb_version` is always quoted: `mkb_version: "1.0"`.
 7. Handles are written without `@` (YAML reserves `@`). Prose may use `@<handle>`; front matter never does.
 8. Optional keys with no value are omitted entirely. Never write `key:` with an empty value and never write `key: []`.
-9. A scalar MUST NOT contain `: ` or ` #`, nor end with `:`; rephrase with a dash instead. It MUST NOT start with `[`, `]`, `{`, `}`, `>`, `|`, `*`, `&`, `!`, `%`, `@`, `#`, `,`, `"`, `'` or a backtick, nor with `-` or `?` followed by a space or the end of the value (except list values, which are flow lists, and `mkb_version`, which rule 6 quotes).
+9. A scalar MUST NOT contain `: ` or ` #` (a tab counts as a space), nor end with `:`; rephrase with a dash instead. It MUST NOT start with `[`, `]`, `{`, `}`, `>`, `|`, `*`, `&`, `!`, `%`, `@`, `#`, `,`, `"`, `'` or a backtick, nor with `-` or `?` followed by a space, a tab or the end of the value (except list values, which are flow lists, and `mkb_version`, which rule 6 quotes).
 10. At most 12 keys, so that the first 16 lines of a file show the front matter and the H1 (12 keys, 2 delimiters, the H1, and room for the tolerated blank line).
 ### Vocabularies
 | Field | Values and meaning |

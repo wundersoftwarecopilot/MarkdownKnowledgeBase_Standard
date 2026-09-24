@@ -32,7 +32,7 @@ done
 
 [ -n "$ROOT" ] || ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=.
 cd "$ROOT" 2>/dev/null || usage "cannot enter root directory $ROOT"
-ADR=${ADR%/}; ADR=${ADR#./}
+ADR=$(printf '%s\n' "$ADR" | sed 's|\\|/|g'); ADR=${ADR%/}; ADR=${ADR#./}
 [ -d docs/mkb ] || usage "no docs/mkb directory under $ROOT"
 [ -z "$ADR" ] || [ -d "$ADR" ] || usage "--adr-dir $ADR is not a directory"
 if [ "$NOGIT" = 0 ] && ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -103,7 +103,7 @@ function idok(t, s,  w) {
 function idtype(s,  i) { for (i = 1; i <= 8; i++) if (idok(TY[i], s)) return TY[i]; return "" }
 function q(s) { gsub(/\047/, "\047\\\047\047", s); return "\047" s "\047" }
 function run(c,  r, x) { r = ""; c = c " 2>/dev/null"; while ((c | getline x) > 0) if (x > r) r = x; close(c); return r }
-function bads(x) { return x ~ /: |:$| #|^[][{}>|*&!%@`#,"\047]|^[-?:]( |$)/ }
+function bads(x) { return x ~ /:[ \t]|:$|[ \t]#|^[][{}>|*&!%@`#,"\047]|^[-?:]([ \t]|$)/ }
 function fence(s,  c, n, bq, x, ind) {
   match(s, /^[ \t]*(>[ \t]*)*/); x = substr(s, 1, RLENGTH); s = substr(s, RLENGTH + 1); bq = gsub(/>/, "", x); ind = length(x)
   if (FC != "" && bq < FQ) FC = ""
