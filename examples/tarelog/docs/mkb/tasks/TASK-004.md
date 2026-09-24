@@ -24,7 +24,7 @@ Out of scope: the other customers, who keep receiving their report by e-mail.
 
 ## Notes
 - 2026-09-08 codex: blocked on Q-001; the customer's file specification names both key and password authentication.
-- 2026-09-15 luca: released; partial work on branch codex/task-004-sftp-delivery, see its handoff
+- 2026-09-15 codex: released; partial work on branch codex/task-004-sftp-delivery, see its handoff
 
 ## Completion
 - 2026-09-16 claude-code: done in PR #15

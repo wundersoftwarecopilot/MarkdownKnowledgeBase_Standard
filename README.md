@@ -28,11 +28,11 @@ Choose the full profile if an upgrade trigger of [spec/11-profiles.md](spec/11-p
 
 ### Minimal profile
 
-1. In your project, create the branch `<actor>/mkb-adopt` and inspect what already exists: README, CONTRIBUTING, `docs/` and any site generator that builds it, ADR directories, agent instruction files, `.gitattributes`, handoff or notes files, the issue tracker.
+1. In your project, create the branch `<actor>/mkb-adopt` and inspect what already exists: README, CONTRIBUTING, `docs/` and any site generator that builds it, ADR directories, agent instruction files, `.gitattributes`, handoff or notes files, task lists such as `TODO.md`, the issue tracker.
 2. From the root of this repository, set `REPO` (sh) or `$repo` (PowerShell) to your project's path and run the adoption command in [templates/README.md](templates/README.md), section Adoption commands, with `<profile>` = `minimal`: it stops if `docs/mkb` exists, copies the profile to `docs/mkb/` and appends the `.gitattributes` lines only where absent.
 3. Fill `docs/mkb/INDEX.md` (People and agents, Path overrides) and, under `docs/mkb/`, `project/OVERVIEW.md`, `project/CONSTRAINTS.md`, `state/CURRENT.md` and `state/NEXT.md`; delete every guide comment.
-4. Insert the MKB block of [agent-instructions/AGENTS.tmpl.md](agent-instructions/AGENTS.tmpl.md) into your root `AGENTS.md` between its markers (create the file if missing); if you use Claude Code, create root `CLAUDE.md` from [agent-instructions/CLAUDE.tmpl.md](agent-instructions/CLAUDE.tmpl.md) or make `@AGENTS.md` the first line of the existing one; other tools: [agent-instructions/README.md](agent-instructions/README.md).
-5. Keep existing docs in place and add the line "Project memory: `docs/mkb/INDEX.md`" to your README; adopt an existing ADR directory in place, exclude `docs/mkb/` from any site generator that builds `docs/`, and migrate a monolithic `Handoff.md` once ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.2 to §13.4).
+4. Insert the MKB block of [agent-instructions/AGENTS.tmpl.md](agent-instructions/AGENTS.tmpl.md) into your root `AGENTS.md` between its markers (create the file if missing); if you use Claude Code, create root `CLAUDE.md` from [agent-instructions/CLAUDE.tmpl.md](agent-instructions/CLAUDE.tmpl.md) or put the lines of that file at the top of the existing one; other tools: [agent-instructions/README.md](agent-instructions/README.md).
+5. Keep existing docs in place and add the line "Project memory: `docs/mkb/INDEX.md`" to your README; adopt an existing ADR directory in place, exclude `docs/mkb/` from any site generator that builds `docs/`, and migrate a monolithic `Handoff.md` or a `TODO.md` task list once ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.2 to §13.4).
 6. Run `sh docs/mkb/tools/mkb-check.sh` (add `--adr-dir <dir>` for an adopted ADR directory) until it reports 0 errors; if a site generator builds `docs/`, run its build too.
 7. Commit `mkb: adopt MKB v1.0 (minimal profile)` and have a human review the PR.
 
@@ -42,7 +42,7 @@ Choose the full profile if an upgrade trigger of [spec/11-profiles.md](spec/11-p
 - In step 3 also fill ARCHITECTURE (an agent drafts it from the code, a human reviews it) and CONVENTIONS; if `CONTRIBUTING.md` already covers conventions, delete `project/CONVENTIONS.md` and add an INDEX path override row instead ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.2).
 - Add a CI job that runs `sh docs/mkb/tools/mkb-check.sh` on a checkout with the full history of every branch (advisory, never blocking on warnings), and garden weekly ([spec/09-lifecycle.md](spec/09-lifecycle.md) §9.6).
 
-Once the adoption PR is merged, give each local agent tool the git and temp-directory permissions that claims need, and watch its first claim ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.5.4); an agent that cannot fetch or push stops before coding and asks you to push the claim.
+Once the adoption PR is merged, give each local agent tool except Aider, whose claims you make, the git and temp-directory permissions that claims need, and watch its first claim ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.5.4); an agent that cannot fetch or push stops before coding and asks you to push the claim.
 After adoption, agents follow the block in `AGENTS.md`; people start with [spec/01-architecture.md](spec/01-architecture.md) and the worked example [examples/tarelog/WALKTHROUGH.md](examples/tarelog/WALKTHROUGH.md).
 
 ## Repository map

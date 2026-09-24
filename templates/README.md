@@ -88,4 +88,4 @@ When you create a real file from a template, or fill a singleton copied with a p
 ## Agent instruction files
 
 The profiles contain no `AGENTS.md` or `CLAUDE.md`: those come from [agent-instructions/](../agent-instructions/) and are renamed on copy, `AGENTS.tmpl.md` -> `AGENTS.md` and `CLAUDE.tmpl.md` -> `CLAUDE.md` (steps for each tool: [agent-instructions/README.md](../agent-instructions/README.md)).
-A project that already has a root `AGENTS.md` receives only the block between `<!-- MKB:BEGIN v1.0 -->` and `<!-- MKB:END -->`; an existing root `CLAUDE.md` gets `@AGENTS.md` as its first line.
+A project that already has a root `AGENTS.md` receives only the block between `<!-- MKB:BEGIN v1.0 -->` and `<!-- MKB:END -->`; an existing root `CLAUDE.md` gets the lines of `CLAUDE.tmpl.md` at its top, so that `@AGENTS.md` is its first line.

@@ -5,8 +5,8 @@ mkb_version: "1.0"
 # MKB rules
 
 Standard text of MKB Standard v1.0.
-Do not edit above the section "Project-specific rules"; it is replaced when the MKB version is upgraded.
-The project's own additions go in section 16.
+Do not edit above section 16, "Project-specific rules", which holds the project's own additions; the text above it is replaced when the MKB version is upgraded.
+Commands write the default branch as `main`; a project whose default branch has another name uses that name.
 
 ## 1. Session workflow
 Humans follow the same rules; the only differences are that a human writes a handoff only when someone else will continue the work, and may make coordination commits in a clean `main` instead of a temporary worktree (section 11).
@@ -83,7 +83,7 @@ Run it after step 1 of section 1 (branch rebased onto `origin/main`), so the wor
 | T14 | deleted a component, integration or store | delete its knowledge doc and its ARCHITECTURE row in the same PR; repoint references |
 | T15 | changed build, run or test commands, the stack or dependencies | `project/OVERVIEW.md` (Stack, Commands), or `README.md` if that is where commands live |
 | T16 | learned a non-negotiable rule | a human states it: `project/CONSTRAINTS.md` with source and date; otherwise a question to the lead |
-| T17 | introduced a team-wide convention | `project/CONVENTIONS.md` through a PR a human approves |
+| T17 | introduced a team-wide convention | `project/CONVENTIONS.md`, or `CONTRIBUTING.md` under a conventions path override, through a PR a human approves |
 | T18 | changed a project-level fact of the default branch (build red or green, deployed version, known breakage, freeze) | a dated bullet in `state/CURRENT.md`, in the delivering PR or as a coordination commit |
 | T19 | found a doc that contradicts the code | fix it now if small and in scope; otherwise a `> STALE` banner plus a task (section 9) |
 | T20 | discovered work outside your scope | new task, `todo`, `owner: none`, pushed to the default branch at once (section 4, allocation step 6) |
@@ -124,7 +124,7 @@ Run it after step 1 of section 1 (branch rebased onto `origin/main`), so the wor
 3. Also consider files you created but have not committed.
 4. Next ID = highest number found + 1, zero-padded to at least 3 digits (in an adopted ADR directory: padded to the width of its existing numbers, for example `ADR-NNNN`).
 5. Equivalent: `sh docs/mkb/tools/mkb-check.sh next TASK` (or `ADR`, `Q`; add `--adr-dir <dir>` for an adopted ADR directory), or the pipelines below (sh prints the next task ID, number 001 when none exists; PowerShell second).
-6. Tasks and questions: create the file from its template and push it to the default branch at once as a coordination commit (`TASK-NNN: add`, `Q-NNN: ask <owner>`; section 11 recipe), before anything refers to the ID, including follow-ups found during work. If the file already exists in the worktree where you commit, someone took that number after your scan: never overwrite it; remove the temporary worktree and allocate again from step 1. The push is a compare-and-swap: a rejected push followed by an add/add conflict when you rebase the coordination worktree means someone took that number; `git rebase --abort`, allocate again from step 1, and retry. Protected default branch: the file goes in a one-file `mkb-coord` PR (section 5, protected default branch step 5). ADRs: create the file on your work branch (it stays `proposed` there, section 8) and push the branch soon. Until that branch merges, cite the new ADR only in files on that branch, never in a coordination commit: a renumber (below) rewrites only the lines your branch added.
+6. Tasks and questions: create the file from its template and push it to the default branch at once as a coordination commit (`TASK-NNN: add`, `Q-NNN: ask <owner>`; section 11 recipe), before anything refers to the ID, including follow-ups found during work. At adoption they ride the adoption PR instead: no other actor can allocate an ID before `docs/mkb` reaches the default branch. If the file already exists in the worktree where you commit, someone took that number after your scan: never overwrite it; remove the temporary worktree and allocate again from step 1. The push is a compare-and-swap: a rejected push followed by an add/add conflict when you rebase the coordination worktree means someone took that number; `git rebase --abort`, allocate again from step 1, and retry. Protected default branch: the file goes in a one-file `mkb-coord` PR (section 5, protected default branch step 5). ADRs: create the file on your work branch (it stays `proposed` there, section 8) and push the branch soon. Until that branch merges, cite the new ADR only in files on that branch, never in a coordination commit: a renumber (below) rewrites only the lines your branch added.
 7. Dispatched agents that cannot push to the default branch never allocate TASK or Q IDs: they write `New task: <title>` or `Question for <handle>: <question>` in their `MKB for humans:` lines (section 1), and the dispatching human creates the records.
 ```sh
 git fetch --all --quiet
@@ -289,7 +289,7 @@ Write an ADR when BOTH hold:
 - Where to write it, in order of preference: a code comment if it concerns one place in the code; a section of an existing doc (search first); a new doc last, from its template.
 - A gotcha about one module, service, store or integration goes in that doc's `## Gotchas`; a cross-cutting or environment problem goes in a `TS-` doc. Quote exact error strings so grep finds them.
 - `verified` is the date someone last checked the doc against the code on the default branch: the whole doc when it is created and at the 180-day re-check (W16); the parts a change affects when that change touches one of its `code` paths (T11).
-- Split: a knowledge doc over 150 lines is split into narrower IDs; the original keeps a short map pointing to the new IDs (or is deleted if the split is total). Rename: only during gardening, one commit, with `formerly` set and every reference repointed. Delete: with its component, in the same PR. Never bulk-generate knowledge docs for code nobody is changing; at adoption or upgrade, at most the 3 most-changed components get docs (`git log --format= --name-only | sort | uniq -c | sort -rn | head`).
+- Split: a knowledge doc over 150 lines is split into narrower IDs; the original keeps a short map pointing to the new IDs (or is deleted if the split is total). Rename: only during gardening, one commit, with `formerly` set and every reference repointed. Delete: with its component, in the same PR. Never bulk-generate knowledge docs for code nobody is changing; at adoption or upgrade, at most the 3 most-changed components get docs written from the code (`git log --format= --name-only | sort | uniq -c | sort -rn | head`); a knowledge doc created to hold facts migrated from an old notes file is not counted.
 - A doc that contradicts the code: fix it now if small and in scope; otherwise a STALE banner plus a task (T19).
 - STALE banner, exact form, directly under the H1 (whole doc) or under the affected `##` heading (one section):
 ```markdown
@@ -311,12 +311,12 @@ Never bump `verified` without actually checking the code.
 ## 11. Concurrency and conflicts
 - One work item, one branch, one writer; two actors on one task at the same time is a claim violation, not a merge problem: the later actor stops. Parallel local agents each use their own `git worktree`; git refuses to check out one branch in two worktrees.
 - Never push to or force-push a branch you did not create; a cloud agent and a local agent never share a branch. Exception: once the session that owns a PR branch has ended, a human reviewer MAY add commits to it (for example to set an ADR to `accepted` during review); never force-push it.
-- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); at session start, first run `git merge --ff-only origin/<your-branch>`, because the lease does not protect commits a reviewer added that you fetched but did not take in; keep branches to a few days. Exception: a branch whose `git log origin/main..HEAD` shows a `mkb: renumber` commit (section 4) takes the default branch by `git merge origin/main`, never a rebase, until it merges.
+- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); at session start, first run `git merge --ff-only origin/<your-branch>`, because the lease does not protect commits a reviewer added that you fetched but did not take in (if the fast-forward is refused, both sides have new commits: ask the human); keep branches to a few days. Exception: a branch whose `git log origin/main..HEAD` shows a `mkb: renumber` commit (section 4) takes the default branch by `git merge origin/main`, never a rebase, until it merges.
 - Lost-update guard: an agent's in-context copy of a file may be hours old. Re-read the file from disk right before editing it, patch only the lines you mean to change, and never write a whole MKB file regenerated from memory. If the file changed since you first read it, merge your intent into the new content.
 ### Coordination commits
 Coordination commits change only MKB coordination data and go straight to the default branch: claims, releases, block and unblock, new tasks and new questions (at allocation, section 4), answers, resolutions (except when the promotion creates an ADR, section 6), `state/CURRENT.md` facts that change outside a PR, and `state/NEXT.md` edits by the lead.
 Everything else rides the work branch and reaches the default branch with the PR.
-The recipe (sh, then PowerShell) does not disturb your working tree and works from any worktree; its temporary worktree has a unique path under the system temp directory, so parallel sessions that share a handle never collide, and tools whose sandbox allows writes only to the workspace and temp directories can use it.
+The recipe (sh, then PowerShell) does not disturb your working tree and works from any worktree; its temporary worktree has a unique path under the system temp directory, so parallel sessions that share a handle never collide; a sandboxed agent tool may need approval to run the recipe's git commands, because they write to the repository's Git directory.
 ```sh
 git fetch origin
 git worktree prune                                   # forget worktrees whose directory is gone (crashed sessions)
@@ -344,7 +344,7 @@ git -C $d push origin HEAD:main
 git worktree remove --force $d                        # only the worktree you created in this step
 git fetch origin; git rebase origin/main              # in your work branch, after committing your work
 ```
-A human whose working tree is clean may skip the temporary worktree: `git switch main`, `git pull --ff-only`, and `git status -sb` must print only `## main...origin/main` (otherwise use the recipe); edit, `git add -A`, `git commit -m "<subject>"`, `git push origin HEAD:main`; rejected: as in the recipe, run in `main`; a conflict in the same MKB file: `git rebase --abort`, `git reset --keep origin/main`, re-read, decide again.
+A human whose working tree is clean may skip the temporary worktree: `git switch main`, `git pull --ff-only`, and `git status -sb` must print only `## main...origin/main` (otherwise use the recipe); edit, `git add -A`, `git commit -m "<subject>"`, `git push origin HEAD:main`; rejected: as in the recipe, run in `main` (protected: `git reset --keep origin/main`, then the PR route below); a conflict in the same MKB file: `git rebase --abort`, `git reset --keep origin/main`, re-read, decide again.
 Protected default branch: coordination changes become one-file PRs labelled `mkb-coord`, merged by the first human who sees them; claims use section 5 (protected default branch).
 No remote: the same recipe with `git worktree add "$d" main` (a real checkout of `main`, no `--detach`, no fetch or push) when `main` is not checked out anywhere; otherwise commit in the worktree that has `main` checked out only if its working tree is clean; otherwise ask the human.
 ### Conflict cookbook (MKB files only)
@@ -383,7 +383,7 @@ It is FORBIDDEN on `project/OVERVIEW.md`, `project/CONSTRAINTS.md`, `project/CON
 6. `mkb_version` is always quoted: `mkb_version: "1.0"`.
 7. Handles are written without `@` (YAML reserves `@`). Prose may use `@<handle>`; front matter never does.
 8. Optional keys with no value are omitted entirely. Never write `key:` with an empty value and never write `key: []`.
-9. A scalar MUST NOT contain `: ` or ` #`; rephrase with a dash instead. It MUST NOT start with `[`, `{`, `>`, `|`, `*`, `&`, `!`, `%`, `@` or a backtick (except list values, which are flow lists).
+9. A scalar MUST NOT contain `: ` or ` #`; rephrase with a dash instead. It MUST NOT start with `[`, `]`, `{`, `}`, `>`, `|`, `*`, `&`, `!`, `%`, `@`, `#`, `,`, `"`, `'` or a backtick, nor with `-` or `?` followed by a space or the end of the value (except list values, which are flow lists, and `mkb_version`, which rule 6 quotes).
 10. At most 12 keys, so that the first 16 lines of a file show the front matter and the H1 (12 keys, 2 delimiters, the H1, and room for the tolerated blank line).
 ### Vocabularies
 | Field | Values and meaning |
@@ -393,7 +393,7 @@ It is FORBIDDEN on `project/OVERVIEW.md`, `project/CONSTRAINTS.md`, `project/CON
 | question `status` | `open`: waiting for its owner's answer. `answered`: `## Answer` filled; waiting for promotion and deletion. |
 | task `priority` | `critical`: drop other work: the default branch is broken, production is down, or there is a legal, safety or data-loss risk. `high`: needed for the current Focus in `state/CURRENT.md`, or blocks other tasks. `normal`: default. `low`: nice to have; gardening may propose dropping it after 90 days. |
 - Knowledge docs, ARCHITECTURE, INDEX and RULES have no `status`; known-wrong knowledge gets a STALE banner (section 9).
-- A handle matches `^[a-z][a-z0-9-]{0,31}$`. Reserved agent handles: `claude-code`, `codex`, `cursor`, `gemini-cli`, `aider`, `copilot`, `windsurf`, `agent` (any other agent tool).
+- A handle matches `^[a-z][a-z0-9-]{0,31}$` and is not `none`. Reserved agent handles: `claude-code`, `codex`, `cursor`, `gemini-cli`, `aider`, `copilot`, `windsurf`, `agent` (any other agent tool).
 - Human handles: the person's lowercase forge or git handle; MUST NOT equal a reserved agent handle. Every handle used in a project SHOULD appear in INDEX `## People and agents`. `owner: none` means unassigned. `deciders` MUST contain only human handles. A question's `owner` MUST be a human handle.
 - Parallel sessions of the same tool share its handle; the `branch` field tells them apart (section 5, claim step 7 defines when an owned task is yours). Never invent handles like `claude-2`.
 ### Keys per type
@@ -440,17 +440,16 @@ It is FORBIDDEN on `project/OVERVIEW.md`, `project/CONSTRAINTS.md`, `project/CON
 | W17 | `low` task | `created` more than 90 days ago | propose dropping it to the lead |
 | W13 | `state/NEXT.md` entry | task `done`, `dropped` or missing | tell the lead, who prunes it |
 | W1 | Size budget | exceeded | split or trim |
-- This table documents the checker: gardening runs `mkb-check.sh` and applies the action of each warning it prints; nobody walks the table by hand.
-- Size budgets in lines (W1): INDEX 120; RULES 500; OVERVIEW 80; ARCHITECTURE 150; CONSTRAINTS 80; CONVENTIONS 120; CURRENT 40; NEXT 15; ADR 100; task 60; question 40; module, service, database and integration docs 150; TS- docs 60; handoff 30; each template 40.
+- This table documents the checker: gardening runs `mkb-check.sh` and applies the action of each warning it prints; nobody walks the table by hand. W10 and W11 are consistency checks, not staleness signals, so the table has no row for them: resolve W10 by repointing the reference to the record's current ID, or by removing it when the record is gone for good, as renames and deletions do (section 9); resolve W11 by deleting the guide comment, which should have been deleted when the file was created from its template.
+- Size budgets in lines (W1): INDEX 120; RULES 500 above section 16; OVERVIEW 80; ARCHITECTURE 150; CONSTRAINTS 80; CONVENTIONS 120; CURRENT 40; NEXT 15; ADR 100; task 60; question 40; module, service, database and integration docs 150; TS- docs 60; handoff 30; each template 40.
 ### mkb-check.sh
 ```text
 sh docs/mkb/tools/mkb-check.sh [--root DIR] [--no-git] [--adr-dir DIR] [--today YYYY-MM-DD] [--strict] [check]
 sh docs/mkb/tools/mkb-check.sh [--root DIR] [--no-git] [--adr-dir DIR] next TASK|ADR|Q
 ```
-- `--root DIR`: repository root containing `docs/mkb/` (default: `git rev-parse --show-toplevel`, else the current directory). `--no-git`: skip checks W2, W3, W6, W14; `next` scans only the working tree. `--adr-dir DIR`: an ADR directory adopted in place (section 15). `--today`: date used for age checks. `--strict`: warnings also make the exit code 1.
+- `--root DIR`: repository root containing `docs/mkb/` (default: `git rev-parse --show-toplevel`, else the current directory). `--no-git`: skip checks W2, W3, W6, W14; `next` scans only the working tree. `--adr-dir DIR`: an ADR directory adopted in place (section 15). `--today`: date used for age checks. `--strict`: warnings also make the exit code 1. From PowerShell: `& "$env:ProgramFiles\Git\bin\bash.exe" docs/mkb/tools/mkb-check.sh`.
 - Exit codes: 0 no errors (and no warnings under `--strict`); 1 errors found; 2 usage error. Output lines: `ERROR E<n> <path>: <message>`, `WARN W<n> <path>: <message>`, final line `mkb-check: <e> errors, <w> warnings`.
-- Errors: E1 the same `id` value in two files (including `tasks/archive/`); E2 an ID file whose name differs from its `id`; E3 front matter violates section 12; E4 an ID file in the wrong directory for its prefix; E5 a file named `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` or `AGENTS.override.md` under `docs/mkb/`.
-- From PowerShell: `& "$env:ProgramFiles\Git\bin\bash.exe" docs/mkb/tools/mkb-check.sh`.
+- Errors: E1 the same `id` value in two files (including `tasks/archive/`); E2 an ID file whose name differs from its `id`; E3 front matter violates section 12; E4 an ID file in the wrong directory for its prefix; E5 a file named `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` or `AGENTS.override.md` under `docs/mkb/`; E6 a mandatory file is missing: INDEX, RULES, OVERVIEW, CONSTRAINTS, CURRENT, NEXT, and with `profile: full` also ARCHITECTURE, and CONVENTIONS unless INDEX has the `conventions` override row (section 15).
 
 ## 14. Profile differences
 | Rule | Minimal | Full |
@@ -467,11 +466,11 @@ sh docs/mkb/tools/mkb-check.sh [--root DIR] [--no-git] [--adr-dir DIR] next TASK
 - INDEX `## Path overrides` rows have the exact form of the first three rows below; when a project adds its first override row, it deletes the `| none | - | - |` row.
 - Rows that change with an override (both profiles, so that no link points to a missing file); the replacement rows are the last three below:
   - conventions: the CONVENTIONS Layout row and the Routing row "How code is written here" become rows four and five; this applies in the full profile too when `CONTRIBUTING.md` replaces CONVENTIONS.md.
-  - decisions: the Layout row `decisions/ADR-NNN.md` names the adopted directory; the Routing row "What must never be broken" becomes row six; "Why something is the way it is" greps the adopted directory instead of `docs/mkb/decisions`.
+  - decisions: the Layout row `decisions/ADR-NNN.md` names the adopted directory; the Routing row "What must never be broken" becomes row six; "Why something is the way it is" and "Docs about code you will touch" grep the adopted directory instead of `docs/mkb/decisions`.
   - tasks: the Layout rows for `tasks/` and the Routing rows "What to work on", "Who is working on what" and "What is blocked and on what" name the tracker and its saved queries instead of `git grep` commands.
 ```markdown
 | conventions | `CONTRIBUTING.md` | no project/CONVENTIONS.md; CONTRIBUTING.md is authoritative |
-| decisions | `docs/adr/NNNN-<slug>.md` | adr-tools directory adopted in place, native format; IDs are ADR-NNNN; run mkb-check with `--adr-dir docs/adr` |
+| decisions | `docs/adr/NNNN-<slug>.md` | adr-tools directory adopted in place, native format; ID ADR-NNNN is the file `docs/adr/NNNN-*.md`, whose text does not contain it; run mkb-check with `--adr-dir docs/adr` |
 | tasks | <tracker URL> | tracker is authoritative; no tasks/ |
 | `project/CONVENTIONS.md` | project conventions not covered elsewhere (normative) | when needed, or see Path overrides |
 | How code is written here | project/CONVENTIONS.md (if it exists), else `CONTRIBUTING.md` | - |
@@ -479,9 +478,9 @@ sh docs/mkb/tools/mkb-check.sh [--root DIR] [--no-git] [--adr-dir DIR] next TASK
 ```
 ### Adopted ADR directory
 - An existing ADR directory (`docs/adr/`, `doc/adr/`, `docs/decisions/`; adr-tools `NNNN-slug.md`, MADR) is adopted in place; never move or rename it (external links and tooling depend on names).
-- Old and new ADRs keep the directory's native format, file naming and numbering; no MKB front matter is added. The MKB ADR rules apply (section 8: who decides, immutability, superseding); the MKB schema does not.
+- Old and new ADRs keep the directory's native format, file naming and numbering; no MKB front matter is added. The MKB ADR rules apply (section 8: who decides, immutability, superseding); the MKB schema does not. Where section 8 sets `deciders` and `date`, record the deciders in the format's own deciders field if it has one, else as the line `Deciders: <handle>, <handle>` below the native status, and set the native date the same way; the rules that name `deciders` read that field or line.
 - New ADRs use the directory's own template; if it lacks any of Context, Problem, Decision, Alternatives considered or Consequences, add the missing ones as sections.
-- The ID in prose is `ADR-` plus that number (`ADR-NNNN`); allocate with `sh docs/mkb/tools/mkb-check.sh next ADR --adr-dir <dir>` (1 + the highest leading number of any file ever added to the directory on any ref, padded to the width of the existing numbers).
+- The ID in prose is `ADR-` plus that number (`ADR-NNNN`) and names the file `<dir>/NNNN-*.md`, whose text does not contain the ID: open it with `git ls-files "<dir>/NNNN-*"`, because `git grep -w` for the ID finds only the docs that cite it; allocate with `sh docs/mkb/tools/mkb-check.sh next ADR --adr-dir <dir>` (1 + the highest leading number of any `.md` file ever added directly in the directory on any ref, padded to the width of the existing numbers).
 - Native statuses read as MKB statuses: `Proposed` -> `proposed`, `Accepted` -> `accepted`, `Rejected` -> `rejected`, `Deprecated` -> `deprecated`, `Superseded by N` -> `superseded`; only `accepted` ADRs bind. Legacy `Proposed` ADRs already on the default branch violate section 8: the lead accepts or rejects each one during adoption.
 - Because file name differs from ID, the duplicate-number check (sh, then PowerShell) is mandatory before merges and in CI, and `mkb-check.sh` runs with `--adr-dir <that directory>` (it skips E2, E3 and E4 there; E1 becomes two files with the same leading number).
 ```sh

@@ -26,7 +26,7 @@ Choose the profile first ([11-profiles.md](11-profiles.md) §11.1); the files ea
 Rules that also apply at adoption, each defined in its home chapter:
 
 - Placeholders and guide comments in the copied files: [templates/README.md](../templates/README.md); a guide comment left in a real file is warning W11 ([09-lifecycle.md](09-lifecycle.md) §9.7).
-- At most the 3 most-changed components get knowledge docs written from the code; nothing is bulk-generated; docs holding migrated facts are not counted ([09-lifecycle.md](09-lifecycle.md) §9.3, §13.3).
+- At most the 3 most-changed components get knowledge docs written from the code; nothing is bulk-generated; docs holding migrated facts are not counted (§13.3, [09-lifecycle.md](09-lifecycle.md) §9.3).
 - Past decisions found in old notes become backfilled ADRs ([07-decisions.md](07-decisions.md) §7.8).
 - Running the checker from PowerShell: [09-lifecycle.md](09-lifecycle.md) §9.7.
 - Each local agent tool except Aider, whose claims the human makes (§13.5.3), makes one real coordination commit while a human watches (§13.5.4).
@@ -204,6 +204,7 @@ The operational rules for agents are one block of at most 35 lines in root `AGEN
 The v1.0 block is 30 lines including the markers; its text is in [agent-instructions/AGENTS.tmpl.md](../agent-instructions/AGENTS.tmpl.md) and is not repeated here.
 It covers:
 
+- Repositories without a remote (the line before item 1): `origin/main` means local `main` (§13.7).
 - Before changing code (items 1 to 4): fetch and rebase, read INDEX and CURRENT, the lite path, pick the task and read its handoff, claim, discovery.
 - While working (items 5 to 9): what binds, docs that contradict the code, recording discoveries, new IDs, editing MKB files safely.
 - Before you stop (items 10 to 15): the trigger matrix, the handoff, blockers, done, state files, the `MKB for humans:` lines.
@@ -312,11 +313,11 @@ A repository without a remote still needs the coordination rules when several lo
 | Where the standard uses the remote | Without a remote | Defined in |
 |---|---|---|
 | `origin/main` in claim checks, status queries and board views | local `main` | [08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4, §8.8 |
-| `git fetch` and `git push` | skipped | [08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4 |
+| `git fetch`, `git pull` and `git push` | skipped | [08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4 |
 | Branch checks (`git branch -r`) | `git branch` | [08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4 |
 | ID allocation | step 1 (`git fetch --all`) is skipped | [04-naming-and-linking.md](04-naming-and-linking.md) §4.3 |
 | Coordination commits | the temporary worktree holds a real checkout of `main`, with no fetch or push | [12-concurrency.md](12-concurrency.md) §12.2.4 |
-| Session start: fetch, then rebase onto `origin/main` | rebase onto `main` | [05-agent-workflow.md](05-agent-workflow.md) §5.2 |
+| Session start: fetch, fast-forward to `origin/<your-branch>`, then rebase onto `origin/main` | rebase onto `main` | [05-agent-workflow.md](05-agent-workflow.md) §5.2 |
 
 Note: git refuses to check out one branch in two worktrees, which is why the no-remote recipe first checks whether `main` is checked out elsewhere.
 

@@ -15,7 +15,7 @@ A session follows the same phases whatever the tool or the actor:
 | While working | stay within constraints and accepted ADRs, record discoveries when you make them, resolve contradictions | §5.5, §5.7 |
 | After working | walk the trigger matrix, report what needs a human | §5.6, §5.8 |
 
-Humans follow the same rules; the only difference is that a human writes a handoff only when someone else will continue the work.
+Humans follow the same rules; the only differences are that a human writes a handoff only when someone else will continue the work, and may make coordination commits in a clean `main` instead of a temporary worktree ([12-concurrency.md](12-concurrency.md) §12.2.1).
 
 In one line: fetch and rebase onto the default branch, read a fixed small set of files, find everything else with `git grep` and front-matter triage (at most 5 docs read in full), claim before coding, record discoveries when you make them, walk the trigger matrix at the end, and update nothing when nothing durable changed.
 
@@ -44,12 +44,12 @@ Reading aids for this chapter:
 ## 5.2 Before modifying code
 
 1. Update and read:
-   - `git fetch`, then rebase your branch onto `origin/main` (on `main` itself: `git pull --rebase`; a branch with a `mkb: renumber` commit merges instead, [12-concurrency.md](12-concurrency.md) §12.1), so that you see the claims, answers and docs that landed since your branch was cut;
+   - `git fetch`, then `git merge --ff-only origin/<your-branch>` (it takes in commits a reviewer added, [12-concurrency.md](12-concurrency.md) §12.1), then rebase your branch onto `origin/main` (on `main` itself: `git pull --rebase`; a branch with a `mkb: renumber` commit merges instead, [12-concurrency.md](12-concurrency.md) §12.1), so that you see the claims, answers and docs that landed since your branch was cut;
    - `docs/mkb/INDEX.md` (skip if already read in this session);
    - `docs/mkb/state/CURRENT.md`;
    - `docs/mkb/state/NEXT.md`, only if you must choose a task.
 2. Know your work item:
-   - the task you were given, else the first ID in `state/NEXT.md` whose task on the default branch is `todo` with `owner: none` or you, else ask the human;
+   - the task you were given, else the `in-progress` task whose `branch` you are on, if it is yours ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4.1 step 7), else the first ID in `state/NEXT.md` whose task on the default branch is `todo` with `owner: none` or you, else ask the human;
    - no task exists and the work will outlast this session, or will be handed to someone else: create one from `templates/TASK.md` ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.1; a coordination commit, [04-naming-and-linking.md](04-naming-and-linking.md) §4.3 step 6);
    - work you will finish in this session needs no task (if it ends unfinished after all, T2 creates one).
 3. Read the task file.
@@ -61,7 +61,7 @@ Reading aids for this chapter:
 
 How to read a handoff and how far to trust it: [06-handoff.md](06-handoff.md) §6.6.
 
-Example: in TareLog session S4, claude-code resumes TASK-002 with `git fetch`, a clean rebase of `claude-code/task-002-wi200-parser` onto `origin/main`, and `handoff/TASK-002.md` verified against `git log` before the parser work continues.
+Example: in TareLog session S4, claude-code resumes TASK-002, the `in-progress` task whose branch it is on, with `git fetch`, a fast-forward to `origin/claude-code/task-002-wi200-parser` that finds nothing new, a clean rebase of `claude-code/task-002-wi200-parser` onto `origin/main`, and `handoff/TASK-002.md` verified against `git log` before the parser work continues.
 
 ## 5.3 Discovery algorithm
 
@@ -175,7 +175,7 @@ Walk every row; update only the rows that fire.
 
 | # | If your work... | Update |
 |---|---|---|
-| T1 | started a task | claim: `status: in-progress`, `owner`, `branch` (coordination) |
+| T1 | started a task | claim: `status: in-progress`, `owner`, `branch`, `code` (coordination) |
 | T2 | stopped with the work unfinished | no task yet: first create it ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.1) already claimed, `status: in-progress`, `owner: <you>`, `branch: <current branch>` (coordination); then overwrite `handoff/TASK-NNN.md` on the task branch and commit and push everything including it; `git status` clean |
 | T3 | finished a task | tick criteria; `status: done`; `closed`; fill `## Completion`; move each Dead ends or Watch out line of the handoff that stays true after the merge into the owning knowledge doc's `## Gotchas` (§5.5 threshold) or a Notes line of the task; delete `handoff/TASK-NNN.md`; all in the delivering PR (trunk-based: [08-tasks-and-questions.md](08-tasks-and-questions.md) §8.6) |
 | T4 | will not continue a task that someone else may continue | release: `status: todo`, `owner: none`, remove `branch`, Notes line naming the branch with partial work; keep the handoff on that branch (coordination) |
@@ -191,7 +191,7 @@ Walk every row; update only the rows that fire.
 | T14 | deleted a component, integration or store | delete its knowledge doc and its ARCHITECTURE row in the same PR; repoint references |
 | T15 | changed build, run or test commands, the stack or dependencies | `project/OVERVIEW.md` (Stack, Commands), or `README.md` if that is where commands live |
 | T16 | learned a non-negotiable rule | a human states it: `project/CONSTRAINTS.md` with source and date; otherwise a question to the lead |
-| T17 | introduced a team-wide convention | `project/CONVENTIONS.md` through a PR a human approves |
+| T17 | introduced a team-wide convention | `project/CONVENTIONS.md`, or `CONTRIBUTING.md` under a conventions path override, through a PR a human approves |
 | T18 | changed a project-level fact of the default branch (build red or green, deployed version, known breakage, freeze) | a dated bullet in `state/CURRENT.md`, in the delivering PR or as a coordination commit |
 | T19 | found a doc that contradicts the code | fix it now if small and in scope; otherwise a `> STALE` banner plus a task ([09-lifecycle.md](09-lifecycle.md) §9.5) |
 | T20 | discovered work outside your scope | new task, `todo`, `owner: none`, pushed to the default branch at once ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3 step 6) |
@@ -242,7 +242,7 @@ Question for <handle>: <question>
 - `NEXT suggestion`: T21.
 - `Routing gap`: §5.3.
 - `Gardening due`: §5.2 step 6.
-- `New task` and `Question for`: only agents that cannot push to the default branch ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3 step 7); the dispatching human creates those records.
+- `New task` and `Question for`: only dispatched agents that cannot push to the default branch ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3 step 7); the dispatching human creates those records.
 - Humans read the block at review; the lead acts on NEXT suggestions and routing gaps.
 
 Example: the description of TareLog PR #14, which resolves Q-001 through a new ADR, ends with:
@@ -266,11 +266,11 @@ New task: Per-customer report time zone
 Copy this list into a session prompt or a PR template; each line points to the section that holds the rule.
 
 ```markdown
-- [ ] `git fetch`; rebase onto `origin/main`; read INDEX.md and state/CURRENT.md (§5.2)
+- [ ] `git fetch`; `git merge --ff-only origin/<your-branch>`; rebase onto `origin/main`; read INDEX.md and state/CURRENT.md (§5.2)
 - [ ] At most 3 files, no interface, configuration, schema or dependency change, done now: lite path (§5.4)
-- [ ] Work item: the given task, else the first eligible ID in state/NEXT.md, else ask; outlasts the session: create a task
+- [ ] Work item: the given task, else your `in-progress` task on this branch, else the first eligible ID in state/NEXT.md, else ask; outlasts the session: create a task
 - [ ] Read the task, then its handoff; verify the handoff against `git log` and `git status` (§6.6)
-- [ ] Claim pushed to the default branch before coding; never code on an unpushed claim (§8.4)
+- [ ] Claim pushed to the default branch before coding, unless the task is already yours; never code on an unpushed claim (§8.4)
 - [ ] Discovery: code owners, IDs, paths, error text, reverse hop; at most 5 docs in full (§5.3)
 - [ ] Another actor's in-progress task covers your paths: tell the human before editing
 - [ ] Constraints and accepted ADRs bind; record each discovery when made, by bare ID (§5.5)

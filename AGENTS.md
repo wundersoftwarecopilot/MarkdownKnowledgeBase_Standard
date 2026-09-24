@@ -1,7 +1,7 @@
 # Agent instructions
 
 This repository defines the MKB Standard: its sources are `spec/`, `templates/`, `agent-instructions/` and `examples/`; the work on it is tracked in this repository's own `docs/mkb/`.
-There is no remote: wherever the block below says `origin/main`, use `main`, and skip `git fetch` and `git push` (`docs/mkb/agents/RULES.md`, section 5, no remote).
+There is no remote: wherever the block below says `origin/main`, use `main`, and skip `git fetch`, `git pull` and `git push` (`docs/mkb/agents/RULES.md`, section 5, no remote).
 Shared MKB files are edited only under `templates/full/docs/mkb/` and then copied: `docs/mkb/project/CONVENTIONS.md`, section Code.
 
 <!-- MKB:BEGIN v1.0 -->

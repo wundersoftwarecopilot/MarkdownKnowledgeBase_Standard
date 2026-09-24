@@ -97,7 +97,7 @@ Created when first needed in the minimal profile: `project/ARCHITECTURE.md` (cop
 
 Everything in §2.2.1 with `profile: full` in INDEX, plus:
 - `docs/mkb/project/ARCHITECTURE.md`
-- `docs/mkb/project/CONVENTIONS.md`, unless `CONTRIBUTING.md` already covers conventions; then no file is created and INDEX gets a path override row pointing to `CONTRIBUTING.md` (and the CONVENTIONS rows of INDEX change as described in §2.4.5, "Rows that change with an override").
+- `docs/mkb/project/CONVENTIONS.md`, unless `CONTRIBUTING.md` already covers conventions; then the copied file is deleted and INDEX gets a path override row pointing to `CONTRIBUTING.md` (and the CONVENTIONS rows of INDEX change as described in §2.4.5, "Rows that change with an override").
 - A CI job that runs `sh docs/mkb/tools/mkb-check.sh` (SHOULD, advisory).
 
 Created when first needed in the full profile: `decisions/`, `tasks/`, `tasks/archive/`, `questions/`, `knowledge/<kind>/`, `handoff/`.
@@ -111,13 +111,16 @@ Profile legend:
 - `full` = created at adoption in the full profile, created when needed in the minimal profile.
 - `lazy` = created when first needed in both profiles.
 
+Files marked `min` are mandatory in both profiles, and files marked `full` are mandatory in the full profile, except `project/CONVENTIONS.md` when the conventions path override replaces it (§2.4.5); `lazy` files are optional.
+mkb-check reports a missing mandatory file under `docs/mkb/` outside `templates/` and `tools/` as error E6 ([09-lifecycle.md](09-lifecycle.md) §9.7.5).
+
 | Path | Purpose | Profile | Updated by / when | Size budget | Front matter |
 |---|---|---|---|---|---|
 | `AGENTS.md` (MKB block) | Operational rules auto-loaded by most agents | min | A human; only when upgrading the MKB version (the block between markers is replaced whole) | block ≤ 35 lines | no |
 | `CLAUDE.md` | Imports AGENTS.md for Claude Code | min, if Claude Code is used | A human; at adoption | own content ≤ 20 lines | no |
 | `.gitattributes` (MKB lines) | LF line endings for MKB and agent files | min | A human; at adoption | 4 lines | no |
 | `docs/mkb/INDEX.md` | Entry point: layout, routing, authority, people, overrides | min | A human, or an agent through a reviewed PR; only when layout, routing, people or overrides change; never per task | ≤ 120 lines | yes |
-| `docs/mkb/agents/RULES.md` | Operational rulebook for reading and writing the MKB | min | Standard text replaced on MKB version upgrade; humans edit only the final section "Project-specific rules" | ≤ 500 lines | yes |
+| `docs/mkb/agents/RULES.md` | Operational rulebook for reading and writing the MKB | min | Standard text replaced on MKB version upgrade; humans edit only the final section "Project-specific rules" | ≤ 500 lines above section 16 | yes |
 | `docs/mkb/project/OVERVIEW.md` | Purpose, users, scope, stack, commands, glossary | min | Anyone whose change alters scope, stack or commands, in the same PR | ≤ 80 lines | no |
 | `docs/mkb/project/ARCHITECTURE.md` | System context, components, data flow, deployment, code map | full | Whoever adds, removes or re-bounds a component, in the same PR; `verified` bumped only after a check ([03-metadata.md](03-metadata.md) §3.3) | ≤ 150 lines | yes |
 | `docs/mkb/project/CONSTRAINTS.md` | Non-negotiable rules with sources (normative) | min | Humans; an agent only when a human states the rule in the session, citing that human | ≤ 80 lines | no |
@@ -220,7 +223,7 @@ Path override rows (both profiles, examples of the exact form):
 
 ```markdown
 | conventions | `CONTRIBUTING.md` | no project/CONVENTIONS.md; CONTRIBUTING.md is authoritative |
-| decisions | `docs/adr/NNNN-<slug>.md` | adr-tools directory adopted in place, native format; IDs are ADR-NNNN; run mkb-check with `--adr-dir docs/adr` |
+| decisions | `docs/adr/NNNN-<slug>.md` | adr-tools directory adopted in place, native format; ID ADR-NNNN is the file `docs/adr/NNNN-*.md`, whose text does not contain it; run mkb-check with `--adr-dir docs/adr` |
 | tasks | <tracker URL> | tracker is authoritative; no tasks/ |
 ```
 
@@ -229,7 +232,7 @@ When a project adds its first override row, it deletes the `| none | - | - |` ro
 Rows that change with an override (both profiles, so that no link points to a missing file):
 - conventions: the CONVENTIONS Layout row becomes the backticked row of difference 2 in §2.4.4, and the Routing row "How code is written here" becomes the row of difference 3.
   This applies in the full profile too when §2.2.2 replaces CONVENTIONS.md by the override.
-- decisions: the Layout row `decisions/ADR-NNN.md` names the adopted directory; the Routing row "What must never be broken" becomes the row below; "Why something is the way it is" greps the adopted directory instead of `docs/mkb/decisions`.
+- decisions: the Layout row `decisions/ADR-NNN.md` names the adopted directory; the Routing row "What must never be broken" becomes the row below; "Why something is the way it is" and "Docs about code you will touch" grep the adopted directory instead of `docs/mkb/decisions`.
 
 ```markdown
 | What must never be broken | project/CONSTRAINTS.md, then accepted ADRs in `docs/adr/` | `git grep -l -i -E '^(status: *"?)?accepted' -- docs/adr` |
@@ -270,7 +273,7 @@ The brief proposed a directory structure and allowed changes "only when there is
 | `state/NEXT.md` | kept, lead-owned, IDs only | Priority says how important; NEXT says in what order. One writer avoids conflicts. |
 | `state/CURRENT.md` | kept; dated bullets; edited only on project-level change | Per-session updates on parallel branches guarantee conflicts and filler. |
 | `questions/OPEN.md` | `questions/Q-NNN.md` | Per-question files never conflict; the directory listing is the open list; answers move to their home. |
-| `agents/CODEX.md`, `agents/CLAUDE.md` | removed | Tools auto-load only specific root or nested files; a `CLAUDE.md` or `AGENTS.md` under `docs/mkb/` would be loaded as scoped instructions by Claude Code, Cursor or Copilot; two rule copies drift. |
+| `agents/CODEX.md`, `agents/CLAUDE.md` | removed | Tools auto-load only specific root or nested files; a `CLAUDE.md` or `AGENTS.md` under `docs/mkb/` would be loaded as scoped instructions by Claude Code, Cursor or Copilot; two rule copies drift. Tool-specific notes go in the root files the tools load: Claude Code only notes in `CLAUDE.md`, notes for Codex in `AGENTS.md` above the MKB block ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.5). |
 | `handoff/CURRENT.md` | `handoff/TASK-NNN.md` on the task branch | One file per unfinished task has exactly one writer; a single CURRENT file is overwritten by every parallel session. |
 | `handoff/HISTORY.md` | removed | It duplicates `git log` and task Completion sections, needs a cap and rotation, and is an append hot spot; handoff lines that stay true move to knowledge docs or task Notes before the handoff is deleted (T3). |
 | Knowledge subdirectories created upfront | created lazily | Git does not track empty directories. |

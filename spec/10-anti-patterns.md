@@ -128,7 +128,7 @@ Each entry gives the anti-pattern, why it hurts, and the rule that prevents it; 
 
 30. **Project knowledge copied into AGENTS.md, CLAUDE.md or tool rule files; parallel per-tool rule sets.**
     - Why it hurts: the copies drift, each tool follows a different version, and instruction files grow toward the tools' size limits.
-    - Prevented by: one MKB block in root `AGENTS.md`, a root `CLAUDE.md` that imports it, and pointers only for tools that need them ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.5); adoption moves project knowledge found in `AGENTS.md` into the MKB ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.2).
+    - Prevented by: one MKB block in root `AGENTS.md`, a root `CLAUDE.md` that imports it, and pointers only for tools that need them ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.5); adoption moves project knowledge found in `AGENTS.md` or `CLAUDE.md` into the MKB ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.2).
 
 31. **Tool-named files (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`) under `docs/mkb/`.**
     - Why it hurts: Claude Code, Cursor or GitHub Copilot would load such a file as scoped instructions for that subtree.
@@ -144,7 +144,7 @@ Each entry gives the anti-pattern, why it hurts, and the rule that prevents it; 
 
 34. **Bulk-generated knowledge docs for code nobody is changing.**
     - Why it hurts: nobody verifies them, so they mislead discovery from the day they are written.
-    - Prevented by: at adoption or upgrade, at most the 3 most-changed components get docs ([09-lifecycle.md](09-lifecycle.md) §9.3).
+    - Prevented by: at adoption or upgrade, at most the 3 most-changed components get docs written from the code ([09-lifecycle.md](09-lifecycle.md) §9.3).
 
 35. **"I will update the docs later": MKB updates belong in the same PR as the change.**
     - Why it hurts: later rarely comes, and meanwhile the default branch holds code and docs that disagree.

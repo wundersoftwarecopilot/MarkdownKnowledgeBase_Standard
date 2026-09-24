@@ -14,7 +14,7 @@ Examples use the fictional TareLog project of [examples/tarelog/WALKTHROUGH.md](
 - NOT needed for work you finish in the current session (committed, and a PR opened where the project uses PRs); the commit or PR is the record.
 - Size: one mergeable unit of roughly 1 to 3 sessions; larger work is split into several tasks; no subtasks, no epics.
 - Every new task, including follow-ups found during work, is created on the default branch at once as a coordination commit `TASK-NNN: add` ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3, step 6), so its number is visible before anything refers to it.
-  Agents that cannot push to the default branch write `New task: <title>` in their `MKB for humans:` lines instead ([05-agent-workflow.md](05-agent-workflow.md) §5.8).
+  Dispatched agents that cannot push to the default branch write `New task: <title>` in their `MKB for humans:` lines instead ([05-agent-workflow.md](05-agent-workflow.md) §5.8).
 
 A task for every 10-minute fix is anti-pattern 33 of [10-anti-patterns.md](10-anti-patterns.md).
 
@@ -77,6 +77,7 @@ Example: the Completion section of TareLog's TASK-002.
 | From | To | Who | Where |
 |---|---|---|---|
 | (new) | `todo` | anyone | coordination commit `TASK-NNN: add` ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3, step 6) |
+| (new) | `in-progress` | the creator, at session end with no task yet (T2) | coordination commit `TASK-NNN: add` with `owner` and `branch` already set ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3, step 6) |
 | `todo` | `in-progress` | the claimer (or a human for a dispatched agent) | coordination (claim, §8.4) |
 | `todo` | `blocked` | anyone, for an unowned task; the lead | coordination |
 | `in-progress` | `blocked` | the owner | coordination |
@@ -90,7 +91,7 @@ Edit rights: only the owner edits a claimed task; anyone may append a Notes line
 
 The meaning of each status is in [03-metadata.md](03-metadata.md) §3.4.2.
 
-Example: TareLog's TASK-004 went `todo` (adoption, 2026-09-01) -> `in-progress` (claimed by codex, 2026-09-08) -> `blocked` (Q-001, 2026-09-08) -> `in-progress` (Q-001 resolved in PR #14 while `branch` was set, 2026-09-10) -> `todo` (released by luca, 2026-09-15) -> `in-progress` (claimed by claude-code, 2026-09-16) -> `done` (PR #15, 2026-09-16).
+Example: TareLog's TASK-004 went `todo` (adoption, 2026-09-01) -> `in-progress` (claimed by codex, 2026-09-08) -> `blocked` (Q-001, 2026-09-08) -> `in-progress` (Q-001 resolved in PR #14 while `branch` was set, 2026-09-10) -> `todo` (released by codex, 2026-09-15) -> `in-progress` (claimed by claude-code, 2026-09-16) -> `done` (PR #15, 2026-09-16).
 
 ## 8.4 Claiming protocol
 
@@ -104,9 +105,14 @@ A claim visible to others before coding is a MUST in the full profile and a SHOU
 2. `git show origin/main:docs/mkb/tasks/TASK-NNN.md | head -n 16` MUST show `status: todo` with `owner: none` or your handle.
    PowerShell: `git show origin/main:docs/mkb/tasks/TASK-NNN.md | Select-Object -First 16`.
    Never judge by your local copy.
-3. Make the claim as a coordination commit in a temporary worktree of `origin/main` (recipe in [12-concurrency.md](12-concurrency.md) §12.2), never on a work branch: set `status: in-progress`, `owner: <you>`, `branch: <you>/task-nnn-<slug>`, and `code` with the paths you expect to touch (SHOULD, so that others' overlap checks see them, [05-agent-workflow.md](05-agent-workflow.md) §5.3); commit `TASK-NNN: claim`; `git push origin HEAD:main`.
-4. Push rejected: fetch, rebase the temporary worktree onto `origin/main`, push again.
-   A conflict in `TASK-NNN.md` means someone else claimed it: `git rebase --abort`, remove the temporary worktree, pick another task.
+   Otherwise (`blocked`, or claimed by another actor or session), do not claim the task or code on it: tell the human, naming its `blocked_by` or `owner`.
+3. Make the claim as a coordination commit in a temporary worktree of `origin/main`, or, for a human, in a clean `main` (both in [12-concurrency.md](12-concurrency.md) §12.2.1), never on a work branch.
+   The recipe fetches again, so first repeat the step-2 check on `docs/mkb/tasks/TASK-NNN.md` in the worktree where you commit; if it no longer shows `status: todo` with `owner: none` or your handle, the task was claimed since step 2: remove the temporary worktree and pick another task.
+   Then set `status: in-progress`, `owner: <you>`, `branch: <you>/task-nnn-<slug>`, and `code` with the paths you expect to touch (SHOULD, so that others' overlap checks see them, [05-agent-workflow.md](05-agent-workflow.md) §5.3); commit `TASK-NNN: claim`; `git push origin HEAD:main`.
+4. Push rejected: fetch.
+   If `git rev-list --count HEAD..origin/main` prints `0`, nobody pushed first and the server refuses direct pushes (`! [remote rejected]`): the default branch is protected; do not retry; remove the temporary worktree (on `main`: `git reset --keep origin/main`) and claim as in §8.4.2.
+   Otherwise rebase the temporary worktree onto `origin/main` and push again.
+   A conflict in `TASK-NNN.md` means someone else claimed it: `git rebase --abort`, remove the temporary worktree (on `main`: `git reset --keep origin/main`), pick another task.
    If after the rebase `git rev-list --count origin/main..HEAD` prints `0`, your claim commit was dropped because an identical claim (same handle, another session of your tool) is already there: the task is taken; pick another task.
 5. Create your branch `<you>/task-nnn-<slug>` from the updated `origin/main` (in its own worktree when agents work in parallel locally) and push it at once.
    Takeover: if the task's Notes contain `released; partial work on branch <old-branch>`, read `git show origin/<old-branch>:docs/mkb/handoff/TASK-NNN.md`, create your branch from that tip instead (`git switch -c <you>/task-nnn-<slug> origin/<old-branch>`), rebase it onto `origin/main` (merge instead if it has a `mkb: renumber` commit, [12-concurrency.md](12-concurrency.md) §12.1), push it, and verify the handoff against it; the handoff is now yours to overwrite; never push to the old branch.
@@ -134,16 +140,17 @@ Example: before dispatching TASK-003 to Codex cloud, marta made the commit `TASK
 
 ### 8.4.2 Protected default branch
 
-1. The task must be `todo` on `origin/main`, and `git branch -r` must show no branch containing `task-nnn` other than branches named in the task's release Notes.
+1. `git fetch --prune origin`; without `--prune`, branches deleted on the remote, such as released claim branches, stay listed by `git branch -r`.
+   The task must be `todo` on `origin/main`, and `git branch -r` must show no branch containing `/task-nnn-` other than branches named in the task's release Notes.
 2. Create `<you>/task-nnn-<slug>`, commit the claim edit on it, push it immediately; the pushed branch name is the claim.
-3. Fetch again; if another `task-nnn` branch now exists, the branch whose claim commit is older keeps the task; the other actor stops; ties go to the lead.
+3. `git fetch --prune origin` again; if `git branch -r` now shows a branch containing `/task-nnn-` other than yours and those named in the task's release Notes, stop before coding and ask the lead; the lead gives the task to one actor, and the others delete their claim branches.
 4. Dispatched agents whose tool names its own branch: before dispatch, the dispatching human pushes a claim branch `<agent handle>/task-nnn-<slug>` that holds only the claim commit (`TASK-NNN: claim for <handle>`); the tool's real branch is recorded in `branch:` inside the agent's PR; the human deletes the claim branch when that PR merges or the task is released.
 5. The front-matter claim reaches the default branch with the PR.
    Other coordination changes, new tasks and questions included, use one-file PRs labelled `mkb-coord`, merged by the first human who sees them; an ID collision between two open `mkb-coord` PRs is fixed by renumbering the later one ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4), which nothing refers to yet.
 
 ### 8.4.3 No remote
 
-"origin/main" means local `main`; skip fetch and push; branch checks use `git branch`; coordination commits follow the no-remote variant of [12-concurrency.md](12-concurrency.md) §12.2.
+"origin/main" means local `main`; skip every fetch, pull and push; branch checks use `git branch`; coordination commits follow the no-remote variant of [12-concurrency.md](12-concurrency.md) §12.2.
 Repositories without a remote are covered as a whole in [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.7.
 
 ## 8.5 Release, stale claims and dropping
@@ -159,7 +166,7 @@ The handoff of a released task stays on the released branch for the next owner (
 `mkb-check.sh` reports stale claims and stale dispatches as W6; gardening never releases a human's claim ([09-lifecycle.md](09-lifecycle.md) §9.6).
 Proposing a drop to a human is trigger T5.
 
-Example: luca's coordination commit `TASK-004: release` added the Notes line `- 2026-09-15 luca: released; partial work on branch codex/task-004-sftp-delivery, see its handoff`.
+Example: before luca left for a week, codex, the owner, made the coordination commit `TASK-004: release` from luca's Codex CLI, adding the Notes line `- 2026-09-15 codex: released; partial work on branch codex/task-004-sftp-delivery, see its handoff`.
 
 ## 8.6 Completion
 
@@ -177,7 +184,7 @@ Example: TASK-004 got `status: done`, `closed: 2026-09-16` and its Completion se
 - A blocked task has `status: blocked` and `blocked_by: [IDs]`, each a TASK or Q ID.
 - An external impediment (vendor outage, missing access, hardware) becomes a task owned by the human who chases it, for example a task "Get the Beta Haulage SFTP test account reactivated" owned by `marta`.
 - The reason lives in the blocking item; the blocked task adds a Notes line.
-- Blocker list view: `git grep "^blocked_by:" -- docs/mkb/tasks`.
+- Blocker list view: `git grep "^blocked_by:" origin/main -- docs/mkb/tasks`.
 - A blocker whose items are all resolved is cleared at once (T8); gardening checks for forgotten ones (mkb-check W12).
 
 Setting a block is trigger T6 (a question for a person) or T7 (other work or an external party); clearing it is T8.
@@ -219,7 +226,7 @@ If the decision is yours, make it (and write an ADR if [07-decisions.md](07-deci
 Creating a question: file from the skeleton of §8.10, at most 40 lines; `owner` = the human who must answer (for an external party, the human who will get the answer); created at allocation as a coordination commit `Q-NNN: ask <owner>` ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3, step 6) so the owner sees it on the default branch.
 If it blocks a task, the same commit sets that task `blocked` with `blocked_by: [Q-NNN]` and adds a Notes line.
 A push notifies nobody: the asker also lists the question under `Questions` in its `MKB for humans:` lines ([05-agent-workflow.md](05-agent-workflow.md) §5.8).
-An agent that cannot push to the default branch writes `Question for <handle>: <question>` there instead, and the dispatching human creates the question file.
+A dispatched agent that cannot push to the default branch writes `Question for <handle>: <question>` there instead, and the dispatching human creates the question file.
 
 This is trigger T6.
 An `open` question whose `created` is more than 14 days ago is W15: the owner is reminded and the lead escalates ([09-lifecycle.md](09-lifecycle.md) §9.4).

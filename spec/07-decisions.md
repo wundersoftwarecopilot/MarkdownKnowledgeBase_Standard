@@ -107,7 +107,7 @@ The transitions at a glance:
 | `accepted` | `superseded` | whoever writes the superseding ADR (§7.6) | the PR of the superseding ADR |
 | `accepted` | `deprecated` | only a human (§7.6) | the commit that records the human's decision |
 
-Backfilled ADRs are created as `accepted` directly (§7.8).
+Backfilled ADRs are created as `accepted` directly when the human who confirms them is in the session, otherwise as `proposed` (§7.8).
 
 Only accepted ADRs bind; proposed, rejected, superseded and deprecated ADRs are never authoritative ([01-architecture.md](01-architecture.md) §1.7).
 Status values and their meanings are in [03-metadata.md](03-metadata.md) §3.4.2; the commit subjects are in [04-naming-and-linking.md](04-naming-and-linking.md) §4.6.
@@ -190,6 +190,7 @@ Note: the reverse hop finds an ADR only if the ADR names the knowledge doc's ID,
 ## 7.8 Backfilled ADRs
 
 Backfilled ADRs (migration): `status: accepted`, `date` = the original decision date if the source states it, else the adoption date; `deciders` = the human who confirms during adoption that the decision still holds; the first line of Context is `Recorded retroactively from <source> on YYYY-MM-DD.`
+An agent writes a backfilled ADR as `accepted` only while the human who confirms it is in the adoption session (§7.4); otherwise it writes `proposed`, and the human who accepts it in the adoption PR adds themselves to `deciders` and sets `date` as above.
 
 A backfilled ADR comes from migrating a monolithic handoff or notes file, where a paragraph describing a past significant decision becomes an ADR ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.3).
 It enters the default branch as `accepted`, so the rule of §7.4 applies: a human listed in its `deciders` approves the adoption PR in review or merges it personally.
@@ -227,5 +228,5 @@ MKB ADRs build on the lightweight format that Michael Nygard described in 2011, 
 Existing ADR directories, such as adr-tools directories with file names `NNNN-slug.md` or directories of MADR files, are adopted in place: they are never moved or renamed, and old and new ADRs keep the directory's native format, file naming and numbering.
 No MKB front matter is added to them, because MADR front matter would clash with the MKB schema.
 The MKB ADR rules of §7.1 to §7.8 apply to them; the MKB schema does not.
-How new ADRs there get the five MKB sections, how their IDs are written (`ADR-0007`), how native statuses read as MKB statuses, and how numbers are allocated and checked for duplicates is defined in [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4.
-The agent block searches the decisions directory named in INDEX, so agents find adopted ADRs with the same discovery commands (item 4 of `agent-instructions/AGENTS.tmpl.md`).
+How new ADRs there get the five MKB sections, where they record `deciders` and `date`, how their IDs are written (`ADR-0007`), how native statuses read as MKB statuses, and how numbers are allocated and checked for duplicates is defined in [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4.
+The agent block searches the decisions directory named in INDEX (item 4 of `agent-instructions/AGENTS.tmpl.md`), which finds adopted ADRs by the terms and IDs they cite; an adopted ADR's own ID is resolved by file name ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4).

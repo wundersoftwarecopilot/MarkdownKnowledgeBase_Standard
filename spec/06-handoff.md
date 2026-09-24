@@ -98,7 +98,7 @@ Dead ends and Watch out lines that turn out to stay true after the merge move ou
 
 A session that ends unfinished with no task yet first creates the task, already claimed by its actor, and then writes the handoff (T2).
 
-Example (TareLog session S7): on 2026-09-15 Codex overwrites `handoff/TASK-004.md` on `codex/task-004-sftp-delivery` and pushes everything, and Luca releases TASK-004.
+Example (TareLog session S7): on 2026-09-15 Codex overwrites `handoff/TASK-004.md` on `codex/task-004-sftp-delivery` and pushes everything, then releases TASK-004 because Luca leaves for a week.
 On 2026-09-16 claude-code claims it and runs `git switch -c claude-code/task-004-sftp-delivery origin/codex/task-004-sftp-delivery`, so the handoff arrives on its own branch, where it verifies the handoff and from then on owns it.
 
 ## 6.6 Reading a handoff
@@ -140,7 +140,7 @@ Squash merges and automatic branch deletion drop a handoff's history by design; 
 
 ## 6.9 A good and a bad handoff
 
-Both versions describe TareLog TASK-004 at the end of Codex's session on 2026-09-15, before Luca releases the task.
+Both versions describe TareLog TASK-004 at the end of Codex's session on 2026-09-15, before it releases the task.
 The handoffs of sessions S2 and S5 are shown in full in [examples/tarelog/WALKTHROUGH.md](../examples/tarelog/WALKTHROUGH.md).
 
 ### 6.9.1 Good

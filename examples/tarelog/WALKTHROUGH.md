@@ -80,7 +80,7 @@ Then marta and claude-code read Handoff.md once, whole, and sort every paragraph
 | `state/*.md` | one bullet each in Health (v0.7.2, reports by hand), Focus (TASK-003, TASK-004) and Warnings (lane 2, TASK-002); NEXT: TASK-002, TASK-003, TASK-004, TASK-001 |
 | ADR-001, TASK-001 to TASK-004, SERVICE-GATEWAY, DB-TICKETS, TS-SQLITE-LOCKED | ADR-001 backfilled (`accepted`, `date: 2026-03-10`, `deciders: [marta]`); tasks `todo`, `owner: none`; knowledge `verified: 2026-09-01` |
 | `Handoff.md`, `AGENTS.md`, `CLAUDE.md`, `.gitattributes` | the 3-line stub; three project notes plus the MKB block; `@AGENTS.md`; the four MKB lines |
-| TASK-001 (main, luca, after the merge) | `TASK-001: claim`: `in-progress`, `branch: luca/task-001-nightly-backup`, `code: [src/tarelog/tickets/backup.py]`, a Notes line on the NAS mount |
+| TASK-001 (main, luca, after the merge) | `TASK-001: claim`, committed in luca's clean `main` (no temporary worktree): `in-progress`, `branch: luca/task-001-nightly-backup`, `code: [src/tarelog/tickets/backup.py]`, a Notes line on the NAS mount |
 
 The tasks ride PR #10 instead of coordination commits, because no other actor can allocate a TASK ID before the adoption merges; mkb-check reports 0 errors before the commit `mkb: adopt MKB v1.0 (full profile)`.
 
@@ -211,7 +211,7 @@ Written 2026-09-02 by claude-code on branch `claude-code/task-002-wi200-parser`.
 ### Rule illustrated
 
 - The claim is a coordination commit from a temporary worktree of `origin/main`, pushed before any code: [spec/08-tasks-and-questions.md](../../spec/08-tasks-and-questions.md) §8.4.
-- Discovery is a prefix match on `code`, ID and error-text searches, a reverse hop to ADRs, triage by front matter, at most 5 docs: [spec/05-agent-workflow.md](../../spec/05-agent-workflow.md) §5.3.
+- Discovery is a prefix match on `code`, path, ID and error-text searches, a reverse hop to ADRs, triage by front matter, at most 5 docs: [spec/05-agent-workflow.md](../../spec/05-agent-workflow.md) §5.3.
 - A new TASK file is pushed at allocation; a rejected push and an add/add conflict mean "take the next number": [spec/04-naming-and-linking.md](../../spec/04-naming-and-linking.md) §4.3.
 - The handoff has fixed sections, at most 30 lines, and is written before the final push: [spec/06-handoff.md](../../spec/06-handoff.md) §6.3.
 
@@ -279,7 +279,8 @@ Goals: decide ADR-002 and merge PR #11; finish TASK-002.
 Marta reads PR #11, ADR-002 and the `MKB for humans:` lines; claude-code updates its branch and checks the task and the handoff:
 
 ```text
-$ git fetch origin && git rebase origin/main
+$ git fetch origin && git merge --ff-only origin/claude-code/task-002-wi200-parser && git rebase origin/main
+Already up to date.
 Successfully rebased and updated refs/heads/claude-code/task-002-wi200-parser.
 $ git show origin/main:docs/mkb/tasks/TASK-002.md | grep -e "^owner:" -e "^branch:"
 owner: claude-code
@@ -323,7 +324,7 @@ The two edits of `state/CURRENT.md`, in PR #12 and in marta's coordination commi
 
 ## S5 2026-09-08: a question blocks a task
 
-codex, run by luca in Codex CLI on his laptop, on branch `codex/task-004-sftp-delivery`; luca approves each `git fetch` and `git push` it runs.
+codex, run by luca in Codex CLI on his laptop, on branch `codex/task-004-sftp-delivery`; luca approves each git command it runs that needs the network or writes to `.git` (`git fetch`, `git worktree`, `git commit`, `git push`).
 Goal: TASK-004, now the first ID in NEXT that is `todo` with `owner: none`: upload the daily report to the Beta Haulage SFTP server.
 
 ### What they read
@@ -485,7 +486,7 @@ NEXT suggestion: TASK-007 PDF pipeline is dead code after ADR-003
 Three actors and two agent tools, working toward TASK-004's 2026-10-01 deadline and TASK-007.
 
 - 09-14: luca, by hand, merges PR #13 (`luca/wi200-checksum`), which adds checksum support in `src/tarelog/gateway/wi200.py` without touching INT-WI200.
-- 09-15: codex, in luca's Codex CLI, rebases its branch, implements the CSV upload with key authentication, and overwrites and pushes its handoff before luca, leaving for a week, releases the task.
+- 09-15: codex, in luca's Codex CLI, rebases its branch, implements the CSV upload with key authentication, overwrites and pushes its handoff, and releases the task because luca leaves for a week.
 - 09-16: claude-code session A takes over TASK-004 at marta's request, while session B claims TASK-007 in its own worktree.
 - 09-17: session B delivers TASK-007 and asks Q-002; marta deploys v0.9.0 and updates CURRENT and NEXT.
 
@@ -500,7 +501,7 @@ Session B's `git worktree list` shows both sessions under the one handle, on `cl
 |---|---|
 | `src/tarelog/gateway/wi200.py` (PR #13, luca, 09-14) | `gateway: accept WI-200 frames with checksum`; lane 2 set to `CS=ON`; INT-WI200 not updated |
 | `sftp.py`, INT-HAULER-SFTP, handoff (codex branch, 09-15) | CSV upload with key authentication; INT-HAULER-SFTP `code: [src/tarelog/delivery/sftp.py]`, a Gotchas line for `ChannelException: (1, 'Administratively prohibited')` written when the parallel upload failed, `verified: 2026-09-15`; handoff overwritten (next step: retry 3 times, then alert e-mail; Dead ends: parallel uploads rejected, pointing to INT-HAULER-SFTP) |
-| TASK-004 (main, luca, 09-15; session A, 09-16) | `TASK-004: release` (Key excerpt); then `TASK-004: claim` with `branch: claude-code/task-004-sftp-delivery` |
+| TASK-004 (main, codex, 09-15; session A, 09-16) | `TASK-004: release` (Key excerpt); then `TASK-004: claim` with `branch: claude-code/task-004-sftp-delivery` |
 | PR #15 (session A, 09-16) | retries and alert e-mail; INT-HAULER-SFTP and MODULE-REPORTS `verified: 2026-09-16`; TASK-004 `done`, `closed: 2026-09-16`; the inherited `handoff/TASK-004.md` is not deleted |
 | TASK-007 (main, session B, 09-16) | `TASK-007: claim`, `branch: claude-code/task-007-remove-chromium` |
 | PR #16 (session B, 09-17) | Chromium pipeline deleted; ARCHITECTURE loses the "PDF renderer" row and is re-verified whole, `verified: 2026-09-17`; OVERVIEW Stack updated; TASK-007 `done`, `closed: 2026-09-17` |
@@ -510,7 +511,7 @@ Session B's `git worktree list` shows both sessions under the one handle, on `cl
 
 ### Key excerpt
 
-Luca's release on 09-15, a coordination commit:
+Codex's release on 09-15, a coordination commit made in luca's Codex CLI:
 
 ```diff
 @@ -4,4 +4,3 @@
@@ -521,7 +522,7 @@ Luca's release on 09-15, a coordination commit:
 -branch: codex/task-004-sftp-delivery
 +owner: none
 @@ -24,0 +24 @@
-+- 2026-09-15 luca: released; partial work on branch codex/task-004-sftp-delivery, see its handoff
++- 2026-09-15 codex: released; partial work on branch codex/task-004-sftp-delivery, see its handoff
 ```
 
 Session A's takeover on 09-16, in a new worktree of its own:
@@ -531,7 +532,7 @@ $ git fetch origin
 $ git show origin/main:docs/mkb/tasks/TASK-004.md | grep -e "^status:" -e "^owner:" -e "released;"
 status: todo
 owner: none
-- 2026-09-15 luca: released; partial work on branch codex/task-004-sftp-delivery, see its handoff
+- 2026-09-15 codex: released; partial work on branch codex/task-004-sftp-delivery, see its handoff
 $ git show origin/codex/task-004-sftp-delivery:docs/mkb/handoff/TASK-004.md | sed -n '/^## Next steps/,/^$/p'
 ## Next steps
 1. In `upload_report()` (sftp.py:57), retry a failed upload 3 times, 5 minutes apart.
@@ -555,7 +556,7 @@ The branch matches the handoff, whose copy on session A's own branch is now its 
 ### Rule illustrated
 
 - A change to an integration's behavior updates its knowledge doc in the same PR (T11); PR #13 skipped it: [spec/05-agent-workflow.md](../../spec/05-agent-workflow.md) §5.6.
-- Release: `todo`, `owner: none`, no `branch`, and a Notes line naming the branch that holds the partial work: [spec/08-tasks-and-questions.md](../../spec/08-tasks-and-questions.md) §8.5.
+- Release by the owner: `todo`, `owner: none`, no `branch`, and a Notes line naming the branch that holds the partial work: [spec/08-tasks-and-questions.md](../../spec/08-tasks-and-questions.md) §8.3, §8.5.
 - Takeover: claim, branch from the released branch's tip, rebase, push, verify the handoff; never push to the old branch: [spec/08-tasks-and-questions.md](../../spec/08-tasks-and-questions.md) §8.4.
 - Parallel sessions of one tool share a handle and use one worktree and one branch each: [spec/12-concurrency.md](../../spec/12-concurrency.md) §12.7.
 - A conflict on `verified`: keep the older date unless you re-check the merged doc against the merged code: [spec/12-concurrency.md](../../spec/12-concurrency.md) §12.6.
@@ -630,10 +631,10 @@ The files on `main` after S8, as they are in this directory (`agents/RULES.md`, 
 ```text
 examples/tarelog/
 ├── WALKTHROUGH.md
-├── AGENTS.tmpl.md                 project notes + the P.1 block verbatim
+├── AGENTS.tmpl.md                 project notes + the MKB block of agent-instructions/AGENTS.tmpl.md, verbatim
 ├── CLAUDE.tmpl.md                 identical to agent-instructions/CLAUDE.tmpl.md
-├── Handoff.md                     the F.23 stub dated 2026-09-01
-├── .gitattributes                 the adopter's file: identical to templates/gitattributes-mkb.txt (F.22)
+├── Handoff.md                     the stub of spec/13-adoption-and-integration.md §13.3, dated 2026-09-01
+├── .gitattributes                 the adopter's file: identical to templates/gitattributes-mkb.txt
 └── docs/mkb/
     ├── INDEX.md                   profile: full
     ├── agents/RULES.md            byte-identical to templates/full/docs/mkb/agents/RULES.md
@@ -649,7 +650,7 @@ examples/tarelog/
     ├── tasks/TASK-001.md          in-progress, owner luca, branch luca/task-001-nightly-backup
     ├── tasks/TASK-002.md          done, closed 2026-09-03, owner claude-code
     ├── tasks/TASK-003.md          done, closed 2026-09-02, owner codex
-    ├── tasks/TASK-004.md          done, closed 2026-09-16, owner claude-code, branch claude-code/task-004-sftp-delivery; Notes hold luca's release line
+    ├── tasks/TASK-004.md          done, closed 2026-09-16, owner claude-code, branch claude-code/task-004-sftp-delivery; Notes hold codex's release line
     ├── tasks/TASK-005.md          blocked, owner none, blocked_by [Q-002]
     ├── tasks/TASK-006.md          todo, owner none (no formerly: the collision was caught at creation)
     ├── tasks/TASK-007.md          done, closed 2026-09-17, owner claude-code
@@ -692,7 +693,7 @@ A session that starts on 2026-09-23 without a task takes TASK-006, the first ID 
 | A cloud agent that cannot push finds follow-up work (S3) | the idea stays in a PR comment, or the agent invents a number | a `New task:` line, and marta creates TASK-005 |
 | An agent picks a report format with lasting effect, and a customer answer later overturns it (S3, S6) | the choice ships silently, then its reasoning is edited away or dead PDF code lingers | ADR-002 waits for marta's decision; ADR-003 supersedes it and keeps it as a record; TASK-007 removes the dead code |
 | Work waits on a person (S5, S7) | the blocker lives in chat, and the task looks abandoned | Q-001 and Q-002 are owned by marta, the tasks carry `blocked_by`, and the `MKB for humans:` lines tell her |
-| A developer leaves mid-task (S7) | partial work sits on a branch nobody knows about, and the next agent starts over | luca's release line names the branch; claude-code continues from its tip and its handoff |
+| A developer leaves mid-task (S7) | partial work sits on a branch nobody knows about, and the next agent starts over | codex's release line names the branch; claude-code continues from its tip and its handoff |
 | Two sessions of one tool run at once and both update MODULE-REPORTS (S7) | they share a checkout, and the later merge silently wins | one worktree and one branch each, told apart by `branch`; a loud conflict on `verified`, resolved by re-checking the merged doc |
 | Code changes without its doc (S7, PR #13) | INT-WI200 stays wrong until a lane 2 incident | W2 flags it at the next weekly gardening (S8) |
 | A handoff outlives its task, and a deployment bullet goes stale (S7, S8) | stale notes on main read as current: customers still get PDF reports, and the lasting line is lost with the branch | W4 and W5: the handoff and the old bullet are deleted; the lasting line has been in INT-HAULER-SFTP since the session that hit the error |

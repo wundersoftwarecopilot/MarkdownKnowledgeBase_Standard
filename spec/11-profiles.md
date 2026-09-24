@@ -64,7 +64,7 @@ What the minimal profile does not relax:
 
 Files at adoption: everything of §11.2 with `profile: full` in INDEX, plus:
 - `docs/mkb/project/ARCHITECTURE.md`: an agent drafts it from the code, and a human reviews it ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.1);
-- `docs/mkb/project/CONVENTIONS.md`, unless `CONTRIBUTING.md` already covers conventions; then no file is created and INDEX gets a path override row pointing to `CONTRIBUTING.md` ([02-directory-structure.md](02-directory-structure.md) §2.4);
+- `docs/mkb/project/CONVENTIONS.md`, unless `CONTRIBUTING.md` already covers conventions; then the copied file is deleted and INDEX gets a path override row pointing to `CONTRIBUTING.md` ([02-directory-structure.md](02-directory-structure.md) §2.4);
 - a CI job that runs `sh docs/mkb/tools/mkb-check.sh` (SHOULD, advisory).
 
 Created when first needed: `decisions/`, `tasks/`, `tasks/archive/`, `questions/`, `knowledge/<kind>/`, `handoff/`.
@@ -149,6 +149,6 @@ From the merge on, the MUST rules of the Full column of §11.4 bind every actor:
 
 The upgrade makes no file moves and no ID changes.
 Every record keeps its path and ID, and `agents/RULES.md`, `docs/mkb/templates/` and `docs/mkb/tools/` stay as they are, because they are identical in both profiles.
-The upgrade is not a reason to write knowledge docs in bulk: at adoption or upgrade, at most the 3 most-changed components get docs ([09-lifecycle.md](09-lifecycle.md) §9.3).
+The upgrade is not a reason to write knowledge docs in bulk: at adoption or upgrade, at most the 3 most-changed components get docs written from the code ([09-lifecycle.md](09-lifecycle.md) §9.3).
 
 Note: once INDEX says `profile: full`, W5 warns after 14 days instead of 35, so step 7 may report older `state/CURRENT.md` bullets; re-verify and re-date them, or delete them ([09-lifecycle.md](09-lifecycle.md) §9.4).

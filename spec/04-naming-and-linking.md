@@ -65,8 +65,10 @@ The next number is 1 + the highest number ever added on any fetched ref, not the
 4. Next ID = highest number found + 1, zero-padded to at least 3 digits (in an adopted ADR directory: padded to the width of its existing numbers, for example `ADR-0008`).
 5. Equivalent: `sh docs/mkb/tools/mkb-check.sh next TASK` (or `ADR`, `Q`; add `--adr-dir <dir>` for an adopted ADR directory).
 6. Tasks and questions: create the file from its template and push it to the default branch at once as a coordination commit (`TASK-NNN: add`, `Q-NNN: ask <owner>`; recipe in [12-concurrency.md](12-concurrency.md) §12.2), before anything refers to the ID, including follow-ups found during work.
+   If the file already exists in the worktree where you commit, someone took that number after your scan: never overwrite it; remove the temporary worktree and allocate again from step 1.
    The push is a compare-and-swap: a rejected push followed by an add/add conflict when you rebase the coordination worktree means someone took that number; `git rebase --abort`, allocate again from step 1, and retry.
    Protected default branch: the file goes in a one-file `mkb-coord` PR ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4.2 step 5).
+   At adoption, tasks and questions ride the adoption PR instead ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.1 step 6).
    ADRs: create the file on your work branch (it stays `proposed` there, [07-decisions.md](07-decisions.md) §7.4) and push the branch soon.
    Until that branch merges, cite the new ADR only in files on that branch, never in a coordination commit: a renumber (§4.4) rewrites only the lines the branch added.
 7. Dispatched agents that cannot push to the default branch never allocate TASK or Q IDs: they write `New task: <title>` or `Question for <handle>: <question>` in their `MKB for humans:` lines ([05-agent-workflow.md](05-agent-workflow.md) §5.8), and the dispatching human creates the records.
@@ -95,7 +97,7 @@ For questions, replace `tasks` and `TASK` with `questions` and `Q`; for ADRs in 
 Adopted ADR directory (sh; prints the next ID at the directory's width; `mkb-check.sh next ADR --adr-dir docs/adr` does the same, also from PowerShell through Git Bash, [09-lifecycle.md](09-lifecycle.md) §9.7):
 
 ```sh
-git log --all --no-renames --diff-filter=A --name-only --format= -- docs/adr | sed 's|.*/||' \
+git log --all --no-renames --diff-filter=A --name-only --format= -- docs/adr | grep -E '^"?docs/adr/[0-9][^/]*\.md"?$' | sed 's|.*/||' \
   | grep -oE '^[0-9]+' | awk '$1+0 > n { n = $1+0 } { w = length($1) } END { f = "ADR-%0" w "d\n"; printf f, n+1 }'
 ```
 
@@ -104,7 +106,7 @@ Gaps are normal.
 
 Note: `--no-renames` makes a file created by `git mv`, such as a renumbered record (§4.4 step 3), count as added; without it git reports a rename and the new number is missed.
 
-Note: step 6 makes a new TASK or Q number visible to every actor before anything refers to it, so a second creator of the same number fails at its own push while nothing depends on that number yet.
+Note: step 6 makes a new TASK or Q number visible to every actor before anything refers to it, so a second creator of the same number finds the file already in its coordination worktree, or fails at its own push, while nothing depends on that number yet.
 
 Example: in TareLog session S2, claude-code's allocation scan found `TASK-004` as the highest task and it committed `TASK-005: add` in its coordination worktree.
 Its push was rejected because marta had pushed her own TASK-005 a minute earlier; the rebase stopped with `CONFLICT (add/add): Merge conflict in docs/mkb/tasks/TASK-005.md`.
@@ -216,7 +218,7 @@ Example (TareLog; a state bullet, a task Notes line, a question answer):
 
 ```markdown
 - 2026-09-17 marta: Production weighbridge PC runs v0.9.0; CSV reports reach Beta Haulage by 06:00 (TASK-004, TASK-007).
-- 2026-09-15 luca: released; partial work on branch codex/task-004-sftp-delivery, see its handoff
+- 2026-09-15 codex: released; partial work on branch codex/task-004-sftp-delivery, see its handoff
 2026-09-10 marta: Key authentication only; they also said their ERP imports CSV only, so PDF is not needed.
 ```
 

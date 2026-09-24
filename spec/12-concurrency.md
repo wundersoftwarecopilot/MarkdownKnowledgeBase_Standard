@@ -13,18 +13,20 @@ Claims, blockers and questions are defined in [08-tasks-and-questions.md](08-tas
 - Never push to or force-push a branch you did not create; a cloud agent and a local agent never share a branch.
 - Exception: once the session that owns a PR branch has ended, a human reviewer MAY add commits to it (for example to set an ADR to `accepted` during review); never force-push it.
 - Two actors on one task at the same time is a claim violation, not a merge problem: the later actor stops.
-- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); keep branches to a few days.
+- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); at session start, first run `git merge --ff-only origin/<your-branch>` so your branch keeps commits a reviewer added; keep branches to a few days.
 - Exception: a branch whose `git log origin/main..HEAD` shows a `mkb: renumber` commit ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) takes the default branch by `git merge origin/main`, never a rebase, until it merges.
 
 Rebasing a work branch at session start and before a push:
 
 ```sh
 git fetch origin
+git merge --ff-only origin/<your-branch>             # session start only: takes in commits a reviewer added
 git rebase origin/main
 git push --force-with-lease
 ```
 
-Note: unlike `--force`, `--force-with-lease` refuses the push when the remote branch has moved since your last fetch.
+Note: `--force-with-lease` refuses the push only when the remote branch moved after your last fetch; it overwrites commits you fetched but did not take in, which is why the session start fast-forwards first.
+If the fast-forward is refused, your branch and the remote branch both have new commits: ask the human.
 
 ### 12.1.1 Where a change lands
 
@@ -60,7 +62,8 @@ Each coordination change is defined in its home chapter; commit subjects are in 
 ### 12.2.1 Recipe
 
 The recipe does not disturb your working tree and works from any worktree.
-The temporary worktree has a unique path under the system temp directory, so parallel sessions that share a handle never collide, and tools whose sandbox allows writes only to the workspace and temp directories can use it ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.5.4).
+The temporary worktree has a unique path under the system temp directory, so parallel sessions that share a handle never collide.
+A sandboxed agent tool may need approval for the recipe's git commands, because they write to the repository's Git directory ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.5.4).
 
 ```sh
 git fetch origin
@@ -71,7 +74,7 @@ git worktree add --detach "$d" origin/main
 git -C "$d" add -A
 git -C "$d" commit -m "TASK-NNN: blocked on Q-NNN"
 git -C "$d" push origin HEAD:main
-# rejected: git -C "$d" fetch origin, then git -C "$d" rebase origin/main, then push again
+# rejected: git -C "$d" fetch origin; if git -C "$d" rev-list --count HEAD..origin/main prints 0, the default branch is protected (§12.2.3): stop; else git -C "$d" rebase origin/main and push again
 # a conflict in the same MKB file means someone changed it first: git -C "$d" rebase --abort, re-read, decide again
 git worktree remove --force "$d"                     # only the worktree you created in this step
 git fetch origin && git rebase origin/main           # in your work branch, after committing your work
@@ -86,17 +89,33 @@ git worktree add --detach $d origin/main
 git -C $d add -A
 git -C $d commit -m "TASK-NNN: blocked on Q-NNN"
 git -C $d push origin HEAD:main
-# rejected: fetch, rebase origin/main and push again, as in sh
+# rejected: fetch; rev-list --count HEAD..origin/main prints 0: protected (§12.2.3), stop; else rebase origin/main and push again, as in sh
 git worktree remove --force $d                        # only the worktree you created in this step
 git fetch origin; git rebase origin/main              # in your work branch, after committing your work
+```
+
+A human whose working tree is clean MAY make the coordination commit in `main` instead of a temporary worktree; if `git status -sb` shows anything besides `## main...origin/main` after the pull, the recipe above applies:
+
+```sh
+git switch main
+git pull --ff-only
+git status -sb                                       # must print only "## main...origin/main"
+# edit the one MKB file (or the file plus the task it blocks)
+git add -A
+git commit -m "TASK-NNN: claim"
+git push origin HEAD:main
+# rejected: as in the recipe, run in main; protected: git reset --keep origin/main, then §12.2.3
+# a conflict in the same MKB file: git rebase --abort, then git reset --keep origin/main, re-read, decide again
 ```
 
 An agent that cannot fetch or push stops before coding and asks the human to push the claim ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4); what each local tool needs is in [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.5.4.
 
 ### 12.2.2 When the push is rejected
 
-The push to `main` succeeds only when nobody changed the default branch since your fetch, so it works as a compare-and-swap.
-After a rejected push, fetch and rebase the temporary worktree onto `origin/main`, then read the result:
+The push to `main` succeeds only when nobody changed the default branch since the recipe's fetch, so it works as a compare-and-swap on the files as you find them in the temporary worktree; that is why a claim and a new number are checked there ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4.1 step 3, [04-naming-and-linking.md](04-naming-and-linking.md) §4.3 step 6).
+After a rejected push, fetch.
+If `git rev-list --count HEAD..origin/main` prints `0`, nobody pushed first and the server refuses direct pushes (`! [remote rejected]`): the default branch is protected; do not retry; use §12.2.3.
+Otherwise rebase the temporary worktree onto `origin/main`, then read the result:
 
 - The rebase is clean and `git rev-list --count origin/main..HEAD` does not print `0`: someone changed other files; push again.
 - An add/add conflict on a new `tasks/TASK-NNN.md` or `questions/Q-NNN.md`: someone took that number; abort and allocate again ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3).
@@ -229,7 +248,8 @@ The cookbook covers MKB files only.
 | add/add on `decisions/ADR-NNN.md`, or on an ID already on a branch | your branch already has `mkb: renumber <that ID> -> <NEW-ID>` in `git log origin/main..HEAD`: `git rebase --abort`, then `git merge origin/main`; never renumber it again ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4 step 6); otherwise ID collision: the branch merging second renumbers its own item ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
 | add/add on a knowledge doc | same subject documented twice: merge the content into one doc |
 | a knowledge doc's `verified` line | both sides bumped it: keep the older date, unless you re-check the merged doc against the merged code |
-| task `status`, `owner`, `branch` lines | claim race: the default branch wins; the other actor stops and picks another task |
+| task `status`, `owner`, `branch` lines, both sides a claim | claim race: the default branch wins; the other actor stops and picks another task |
+| task `status` line, one side a `done` or `dropped` edit (for example a PR's done edit against a release on the default branch) | not a claim race: stop and ask the lead which side wins; `owner`, `branch` and `closed` may have merged without a conflict, so set them to match the chosen `status`, then run `mkb-check.sh`: no E3 |
 | task Notes, acceptance criteria, `related`, `code` | keep both sides; Notes in date order |
 | `state/CURRENT.md` bullets | keep both sides; for the same bullet keep the newer date; a deletion wins when the fact is no longer true |
 | `state/NEXT.md` | the lead's version wins |
@@ -302,12 +322,12 @@ Example: in TareLog session S3, marta claims TASK-003 for Codex cloud with `TASK
 
 | Collision | How it surfaces | Outcome |
 |---|---|---|
-| Two actors claim the same task | the later claim push is rejected and its rebase conflicts on `tasks/TASK-NNN.md`; an identical claim from another session with the same handle leaves `git rev-list --count origin/main..HEAD` at `0` | the later actor picks another task ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) |
-| Two actors create the same TASK or Q number | the later push is rejected, then an add/add conflict in the coordination worktree | abort, allocate the next number, retry ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3) |
+| Two actors claim the same task | the later actor's check in its temporary worktree shows the task taken; if both worktrees predate the first push, the later claim push is rejected and its rebase conflicts on `tasks/TASK-NNN.md`; an identical claim from another session with the same handle leaves `git rev-list --count origin/main..HEAD` at `0` | the later actor picks another task ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) |
+| Two actors create the same TASK or Q number | the file already exists in the later actor's temporary worktree; if both worktrees predate the first push, the later push is rejected, then an add/add conflict in the coordination worktree | abort, allocate the next number, retry ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3) |
 | Two branches add the same ADR number, or two open `mkb-coord` PRs add the same ID | add/add conflict on rebase, merge or PR | the branch that merges second renumbers its own item ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
 | A duplicate git cannot see (a new item whose number an archived task already has; an adopted ADR directory) | `mkb-check.sh` error E1; the duplicate-number check of [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4 | renumber ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
 | Two branches change different tasks | nothing: different files | - |
-| Two branches change the claim lines of one task | loud conflict on `status`, `owner`, `branch` | the default branch wins (§12.6) |
+| Two branches change the claim lines of one task | loud conflict on `status`, `owner`, `branch` | both sides a claim: the default branch wins; one side a `done` or `dropped` edit: the lead decides which side wins (§12.6) |
 | Two local sessions on one branch | git refuses to check out one branch in two worktrees | each session takes its own branch (§12.7) |
 | Two actors on one task from different checkouts | the later actor's claim check shows the task `in-progress` with another owner or branch ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) | claim violation: the later actor stops (§12.1) |
 | Parallel edits to one knowledge doc | conflicts only on sentences both sides changed, and on a doubly bumped `verified` line | the cookbook (§12.6) |

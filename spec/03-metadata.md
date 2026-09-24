@@ -28,7 +28,7 @@ Front matter MUST NOT appear on: `project/OVERVIEW.md`, `project/CONSTRAINTS.md`
 8. Optional keys with no value are omitted entirely.
    Never write `key:` with an empty value and never write `key: []`.
 9. A scalar MUST NOT contain `: ` or ` #`; rephrase with a dash instead.
-   It MUST NOT start with `[`, `{`, `>`, `|`, `*`, `&`, `!`, `%`, `@` or a backtick (except list values, which are flow lists).
+   It MUST NOT start with `[`, `]`, `{`, `}`, `>`, `|`, `*`, `&`, `!`, `%`, `@`, `#`, `,`, `"`, `'` or a backtick, nor with `-` or `?` followed by a space or the end of the value (except list values, which are flow lists, and `mkb_version`, which rule 6 quotes).
 10. At most 12 keys, so that the first 16 lines of a file show the front matter and the H1 (12 keys, 2 delimiters, the H1, and room for the tolerated blank line).
 
 ## 3.3 Field dictionary
@@ -109,7 +109,7 @@ Who may change a status, and when: [08-tasks-and-questions.md](08-tasks-and-ques
 
 ### 3.4.4 Handles and `owner`
 
-- A handle matches `^[a-z][a-z0-9-]{0,31}$`.
+- A handle matches `^[a-z][a-z0-9-]{0,31}$` and is not `none`.
 - Reserved agent handles: `claude-code`, `codex`, `cursor`, `gemini-cli`, `aider`, `copilot`, `windsurf`, `agent` (any other agent tool).
 - Human handles: the person's lowercase forge or git handle; MUST NOT equal a reserved agent handle.
 - Every handle used in a project SHOULD appear in INDEX `## People and agents`.

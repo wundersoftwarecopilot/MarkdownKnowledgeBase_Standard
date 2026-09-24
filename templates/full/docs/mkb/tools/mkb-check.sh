@@ -33,11 +33,17 @@ done
 [ -n "$ROOT" ] || ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || ROOT=.
 cd "$ROOT" 2>/dev/null || usage "cannot enter root directory $ROOT"
 ADR=${ADR%/}; ADR=${ADR#./}
+[ -d docs/mkb ] || usage "no docs/mkb directory under $ROOT"
+[ -z "$ADR" ] || [ -d "$ADR" ] || usage "--adr-dir $ADR is not a directory"
 if [ "$NOGIT" = 0 ] && ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   NOGIT=1; echo "mkb-check: not a git work tree; running as with --no-git" >&2
 fi
+if [ "$NOGIT" = 0 ] && [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
+  [ "$CMD" = next ] && usage "shallow clone: run git fetch --unshallow first"
+  NOGIT=1; echo "mkb-check: shallow clone; running as with --no-git" >&2
+fi
 
-# next TASK|ADR|Q: 1 + the highest number ever added on any fetched ref, plus files not yet committed (D.4).
+# next TASK|ADR|Q: 1 + the highest number ever added on any fetched ref, plus files not yet committed (docs/mkb/agents/RULES.md, section 4).
 if [ "$CMD" = next ]; then
   case $KIND in
     TASK) d=docs/mkb/tasks ;;
@@ -51,19 +57,20 @@ if [ "$CMD" = next ]; then
     if [ -n "$(git remote 2>/dev/null)" ]; then
       GIT_TERMINAL_PROMPT=0 git fetch --all --quiet || echo "mkb-check: git fetch failed; using the refs already fetched" >&2
     fi
-    h=$(git log --all --diff-filter=A --name-only --format= -- "$d" 2>/dev/null)
+    h=$(git log --all --no-renames --diff-filter=A --name-only --format= -- "$d" 2>/dev/null)
   fi
   w=; [ -d "$d" ] && w=$(find "$d" -type f)
-  printf '%s\n%s\n' "$h" "$w" | awk -v k="$KIND" -v a="$a" '
-    { sub(/\r$/, ""); sub(/.*\//, "") }
-    a == 1 { if (match($0, /^[0-9]+/)) { v = substr($0, 1, RLENGTH) + 0; if (v > n) n = v; if (RLENGTH > w) w = RLENGTH } next }
+  printf '%s\n%s\n' "$h" "$w" | awk -v k="$KIND" -v a="$a" -v d="$d/" '
+    { sub(/\r$/, ""); sub(/^"/, ""); sub(/"$/, ""); p = $0; sub(/[^\/]*$/, "", p); sub(/.*\//, "") }
+    a == 1 {
+      if ((p == d || substr(p, length(p) - length(d)) == "/" d) && /\.md$/ && match($0, /^[0-9]+/)) { v = substr($0, 1, RLENGTH) + 0; if (v > n) n = v; if (RLENGTH > w) w = RLENGTH }
+      next
+    }
     $0 ~ ("^" k "-[0-9]+\\.md$") { v = substr($0, length(k) + 2) + 0; if (v > n) n = v }
     END { printf "%s-%0" (w ? w : 3) "d\n", k, n + 1 }'
   exit 0
 fi
 
-[ -d docs/mkb ] || usage "no docs/mkb directory under $ROOT"
-[ -z "$ADR" ] || [ -d "$ADR" ] || usage "--adr-dir $ADR is not a directory"
 [ -n "$TODAY" ] || TODAY=$(date +%Y-%m-%d)
 DEFREF=
 if [ "$NOGIT" = 0 ]; then
@@ -74,7 +81,7 @@ if [ "$NOGIT" = 0 ]; then
 fi
 
 find docs/mkb ${ADR:+"$ADR"} -type f -name '*.md' |
-MKB_TODAY=$TODAY MKB_NOGIT=$NOGIT MKB_ADR=$ADR MKB_STRICT=$STRICT MKB_DEFREF=$DEFREF awk '
+LC_ALL=C MKB_TODAY=$TODAY MKB_NOGIT=$NOGIT MKB_ADR=$ADR MKB_STRICT=$STRICT MKB_DEFREF=$DEFREF awk '
 function days(s,  y, m, d, e) {
   if (s !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) return -1
   y = substr(s, 1, 4) + 0; m = substr(s, 6, 2) + 0; d = substr(s, 9, 2) + 0
@@ -86,8 +93,8 @@ function old(s, n,  k) { k = days(s); return k >= 0 && T - k > n }
 function err(c, f, m) { print "ERROR " c " " f ": " m; ne++ }
 function warn(c, f, m) { print "WARN " c " " f ": " m; nw++ }
 function g(k) { return (k in V) ? V[k] : "" }
-function inl(l, v) { return index(" " l " ", " " v " ") > 0 }
-function handle(s) { return s ~ /^[a-z][a-z0-9-]*$/ && length(s) <= 32 }
+function inl(l, v) { return v !~ / / && index(" " l " ", " " v " ") > 0 }
+function handle(s) { return s ~ /^[a-z][a-z0-9-]*$/ && length(s) <= 32 && s != "none" }
 function human(s) { return handle(s) && !(s in AGENT) }
 function idok(t, s,  w) {
   if (t == "task" || t == "adr" || t == "question") return s ~ ("^" PFX[t] "-[0-9][0-9][0-9][0-9]*$")
@@ -96,13 +103,15 @@ function idok(t, s,  w) {
 function idtype(s,  i) { for (i = 1; i <= 8; i++) if (idok(TY[i], s)) return TY[i]; return "" }
 function q(s) { gsub(/\047/, "\047\\\047\047", s); return "\047" s "\047" }
 function run(c,  r, x) { r = ""; c = c " 2>/dev/null"; while ((c | getline x) > 0) if (x > r) r = x; close(c); return r }
-function bads(x) { return x ~ /: |:$| #|^[][{}>|*&!%@`]/ }
-function fence(s,  c, n) {
-  sub(/^ ? ? ?/, "", s); c = substr(s, 1, 1)
+function bads(x) { return x ~ /: |:$| #|^[][{}>|*&!%@`#,"\047]|^[-?:]( |$)/ }
+function fence(s,  c, n, bq, x) {
+  match(s, /^[ \t]*(>[ \t]*)*/); x = substr(s, 1, RLENGTH); s = substr(s, RLENGTH + 1); bq = gsub(/>/, "", x)
+  if (FC != "" && bq < FQ) FC = ""
+  c = substr(s, 1, 1)
   if (c != "`" && c != "~") return FC != ""
   n = 1; while (substr(s, n + 1, 1) == c) n++
-  if (FC == "") { if (n < 3 || (c == "`" && index(substr(s, n + 1), "`"))) return 0; FC = c; FL = n; return 1 }
-  if (c == FC && n >= FL && substr(s, n + 1) ~ /^[ \t]*$/) FC = ""
+  if (FC == "") { if (n < 3 || (c == "`" && index(substr(s, n + 1), "`"))) return 0; FC = c; FL = n; FQ = bq; return 1 }
+  if (c == FC && n >= FL && bq == FQ && substr(s, n + 1) ~ /^[ \t]*$/) FC = ""
   return 1
 }
 function refs(f, s,  t, b, p) {
@@ -123,6 +132,7 @@ function body(f, s,  k) {
   refs(f, s)
   if (REL == "state/CURRENT.md" && s ~ /^[-*+] /) CB[++nc] = s
   if (REL == "state/NEXT.md" && s ~ /^- /) { k = substr(s, 3); sub(/[: ].*/, "", k); if (idok("task", k)) NX[++nx] = k }
+  if (REL == "INDEX.md" && s ~ /^\| *conventions *\|/) OVC = 1
 }
 function cond(f, k, req, forb, st) {
   if (req && !(k in V)) err("E3", f, k " is required when status is " st)
@@ -153,8 +163,8 @@ function val(f, ty, b, k,  v, j, x, ok) {
   else if (k == "branch") ok = v !~ /[ \t~^:?*\\[]|\.\.|@\{|^[-\/]|\/$|\.$|\.lock$|\/\//
   else if (k ~ /^(created|closed|date|verified)$/) ok = days(v) >= 0
   else if (k == "superseded_by") ok = idok("adr", v)
-  else if (k == "formerly") ok = idok(ty, v)
-  else if (k == "summary") ok = length(v) <= 120
+  else if (k == "formerly") ok = (ty in KN) ? (idtype(v) in KN) : idok(ty, v)
+  else if (k == "summary") { x = v; gsub(/[\200-\277]/, "", x); ok = length(x) <= 120 }
   else if (k == "mkb_version") ok = v == "\"1.0\""
   else if (k == "profile") ok = inl("minimal full", v)
   if (!ok) err("E3", f, "invalid " k " " v)
@@ -169,7 +179,7 @@ function w6(f, br,  c) {
   if (c == "") warn("W6", f, "in progress; branch " br " not found")
   else if (old(c, 7)) warn("W6", f, "in progress; no commit on branch " br " since " c)
 }
-function file(f,  b, d, t, cls, s, nl, fm, fe, nk, n, i, j, k, v, x, p, st, ty, c, dd, h1, h2) {
+function file(f,  b, d, t, cls, s, nl, fm, fe, nk, n, i, j, k, v, x, p, st, ty, c, dd, h1, h2, ns, bom) {
   b = f; sub(/.*\//, "", b)
   if (f ~ /^docs\/mkb\// && tolower(b) ~ /^(agents|claude|gemini|agents\.override)\.md$/) err("E5", f, "tool instruction file inside docs/mkb")
   sub(/\.md$/, "", b); AD = ADR != "" && index(f, ADR "/") == 1
@@ -192,13 +202,15 @@ function file(f,  b, d, t, cls, s, nl, fm, fe, nk, n, i, j, k, v, x, p, st, ty, 
     k = idtype(b)
     if (k != "" && d != DIRT[k] && !(k == "task" && d == "tasks/archive/")) { err("E4", f, b " belongs in docs/mkb/" DIRT[k]); if (cls == "fm") t = k }
   }
-  nl = fm = nk = 0; FC = ""; h1 = h2 = ""
+  nl = fm = nk = ns = bom = 0; FC = ""; h1 = h2 = ""
   while ((getline s < f) > 0) {
-    nl++; sub(/\r$/, "", s)
+    nl++; sub(/[ \t\r]+$/, "", s)
+    if (nl == 1 && sub(/^\357\273\277/, "", s)) bom = 1
     if (nl == 1 && s == "---") { fm = 1; continue }
     if (fm == 1) { if (s == "---") { fm = 2; fe = nl } else { FMX[++nk] = s; if (cls != "handoff" && s !~ /^formerly:/) refs(f, s) } continue }
     if (fm == 2 && nl == fe + 1) h1 = s
     if (fm == 2 && nl == fe + 2) h2 = s
+    if (!ns && REL == "agents/RULES.md" && s ~ /^## 16\. /) ns = nl - 1
     if (!fence(s) && cls != "handoff") body(f, s)
   }
   close(f)
@@ -209,8 +221,10 @@ function file(f,  b, d, t, cls, s, nl, fm, fe, nk, n, i, j, k, v, x, p, st, ty, 
   }
   if (cls == "nofm" && fm) err("E3", f, "front matter is not allowed in this file")
   k = (REL in SB) ? SB[REL] : (t in BT) ? BT[t] : 0
-  if (k && nl > k) warn("W1", f, nl " lines, budget " k)
+  if (ns) nl = ns
+  if (k && nl > k) warn("W1", f, nl " lines" (ns ? " above section 16" : "") ", budget " k)
   if (cls != "fm") return
+  if (bom) err("E3", f, "the file starts with a UTF-8 byte order mark: save it as UTF-8 without BOM")
   if (!fm) { err("E3", f, "missing front matter"); return }
   if (fm == 1) { err("E3", f, "front matter is not closed by a line ---"); return }
   if (h1 !~ /^# / && (h1 != "" || h2 !~ /^# /)) err("E3", f, "the H1 must follow the closing --- (one blank line tolerated)")
@@ -222,7 +236,7 @@ function file(f,  b, d, t, cls, s, nl, fm, fe, nk, n, i, j, k, v, x, p, st, ty, 
     if (k in V) { err("E3", f, "duplicate key " k); continue }
     V[k] = v; KO[++n] = k
     if (n == 13) err("E3", f, "more than 12 keys")
-    if (substr(v, 1, 1) != "[") { if (bads(v)) { err("E3", f, "value of " k " breaks the MKB YAML subset: " v); IC[k] = -1 } continue }
+    if (substr(v, 1, 1) != "[") { if (k != "mkb_version" && bads(v)) { err("E3", f, "value of " k " breaks the MKB YAML subset: " v); IC[k] = -1 } continue }
     if (v !~ /^\[[^][{}]*\]$/ || v ~ /^\[[ \t]*\]$/) { err("E3", f, "invalid flow list in " k ": " v); IC[k] = -1; continue }
     IC[k] = split(substr(v, 2, length(v) - 2), x, ",")
     for (j = 1; j <= IC[k]; j++) {
@@ -299,6 +313,8 @@ END {
   if (bad) exit 2
   for (i = 2; i <= nfile; i++) { tmp = F[i]; for (j = i - 1; j > 0 && F[j] > tmp; j--) F[j + 1] = F[j]; F[j + 1] = tmp }
   for (i = 1; i <= nfile; i++) if (!(F[i] in DONE)) { DONE[F[i]] = 1; file(F[i]) }
+  c = split("INDEX.md agents/RULES.md project/OVERVIEW.md project/CONSTRAINTS.md state/CURRENT.md state/NEXT.md" (PROFILE == "full" ? " project/ARCHITECTURE.md" (OVC ? "" : " project/CONVENTIONS.md") : ""), x, " ")
+  for (i = 1; i <= c; i++) if (!(("docs/mkb/" x[i]) in DONE)) err("E6", "docs/mkb/" x[i], "mandatory file is missing")
   lim = (PROFILE == "minimal") ? 35 : 14
   for (i = 1; i <= nc; i++) {
     s = CB[i]; k = substr(s, 3, 10)

@@ -169,10 +169,10 @@ Humans resolve contradictions the same way.
 
 A session follows the MKB block in root `AGENTS.md` (copy-ready in `agent-instructions/AGENTS.tmpl.md`); [05-agent-workflow.md](05-agent-workflow.md) specifies every step.
 
-1. Fetch and rebase onto the default branch, then read `INDEX.md` and `state/CURRENT.md` ([05-agent-workflow.md](05-agent-workflow.md) §5.2).
-2. Take the task you were given, else the first ID in `state/NEXT.md` whose task on the default branch is `todo` with `owner: none` or you; read the task and its handoff on the task's branch.
-3. Claim the task with a coordination commit on the default branch before touching code, then create and push the task branch ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4).
-4. Discover, don't browse: match `code` entries against the paths you will touch, grep for IDs and exact error text, triage hits by their first 16 lines, read at most 5 docs in full ([05-agent-workflow.md](05-agent-workflow.md) §5.3).
+1. Fetch, fast-forward your branch to its pushed copy and rebase it onto the default branch, then read `INDEX.md` and `state/CURRENT.md` ([05-agent-workflow.md](05-agent-workflow.md) §5.2).
+2. Take the task you were given, else the `in-progress` task whose branch you are on, if it is yours, else the first ID in `state/NEXT.md` whose task on the default branch is `todo` with `owner: none` or you; read the task and its handoff on the task's branch.
+3. Unless the task is already yours, claim it with a coordination commit on the default branch before touching code, then create and push the task branch ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4).
+4. Discover, don't browse: match `code` entries against the paths you will touch, grep for those paths, IDs and exact error text, triage hits by their first 16 lines, read at most 5 docs in full ([05-agent-workflow.md](05-agent-workflow.md) §5.3).
 5. Work within `project/CONSTRAINTS.md` and accepted ADRs; to deviate, write a `proposed` ADR or open a question.
 6. Record each discovery when you make it, in its home doc, linked by bare ID; out-of-scope work becomes a new task ([05-agent-workflow.md](05-agent-workflow.md) §5.5).
 7. Before stopping, walk the update-trigger matrix and update only the rows that fire; if nothing durable changed, update nothing ([05-agent-workflow.md](05-agent-workflow.md) §5.6).

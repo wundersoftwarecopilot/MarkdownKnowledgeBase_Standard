@@ -17,7 +17,7 @@ The rules for creating, updating and closing each record kind live in the chapte
 | `state/CURRENT.md` bullet | project-level fact appears | re-date on re-verification | - | - | when no longer true; when unverified past the W5 threshold |
 | `state/NEXT.md` entry | the lead | the lead | - | - | the lead prunes |
 | Handoff | session ends with the task unfinished | overwritten by the owner | task done or dropped | - | in the closing PR; leftovers by gardening |
-| `project/*` | adoption or first need | in place | - | - | if absorbed into README or CONTRIBUTING (then an INDEX override) |
+| `project/*` | adoption or first need | in place | - | - | never, except `project/CONVENTIONS.md` when `CONTRIBUTING.md` absorbs it (then the conventions path override, [02-directory-structure.md](02-directory-structure.md) §2.4.5); mandatory files: [02-directory-structure.md](02-directory-structure.md) §2.3 |
 | INDEX, RULES, templates, tools | adoption | layout change (INDEX); version upgrade (others) | - | - | never |
 
 There is no `archive/` for anything but tasks.
@@ -75,7 +75,7 @@ Their structure is maintained as follows:
 - Split: a knowledge doc over 150 lines is split into narrower IDs; the original keeps a short map pointing to the new IDs (or is deleted if the split is total).
 - Rename: only during gardening, one commit, with `formerly` set and every reference repointed.
 - Delete: with its component, in the same PR.
-- Never bulk-generate knowledge docs for code nobody is changing; at adoption or upgrade, at most the 3 most-changed components get docs.
+- Never bulk-generate knowledge docs for code nobody is changing; at adoption or upgrade, at most the 3 most-changed components get docs written from the code; a knowledge doc created to hold facts migrated from an old notes file ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.3) is not counted.
 
 The most-changed paths, as a starting point for choosing those components:
 
@@ -191,7 +191,7 @@ From PowerShell: `& "$env:ProgramFiles\Git\bin\bash.exe" docs/mkb/tools/mkb-chec
 - `--no-git`: skip checks W2, W3, W6, W14; `next` scans only the working tree.
   Outside a git work tree it runs as with `--no-git`; in a shallow clone, whose history is incomplete, `check` runs as with `--no-git` and `next` exits 2 without printing an ID (run `git fetch --unshallow` first).
 - `--adr-dir DIR`: an ADR directory adopted in place ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4), relative to the root.
-  Its files keep their native format: mkb-check applies no front-matter or file-name checks to them (E2, E3 and E4 are skipped there); E1 becomes "two files in DIR with the same leading number" (the duplicate-number check of [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4); W10 resolves `ADR-<n>` to a file `DIR/<n>-*.md`, comparing numbers as integers; `next ADR` prints 1 + the highest leading number of any file ever added to DIR on any ref ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3), padded to the width of the existing numbers, as `ADR-<n>`.
+  Its files keep their native format: mkb-check applies no front-matter or file-name checks to them (E2, E3 and E4 are skipped there); E1 becomes "two files in DIR with the same leading number" (the duplicate-number check of [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4); W10 resolves `ADR-<n>` to a file `DIR/<n>-*.md`, comparing numbers as integers; `next ADR` prints 1 + the highest leading number of any `.md` file ever added directly in DIR (not in its subdirectories) on any ref ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3), padded to the width of the existing numbers, as `ADR-<n>`.
   Default: `docs/mkb/decisions` with the normal checks.
 - `--today YYYY-MM-DD`: date used for age checks (default: the system date); used for reproducible runs.
 - `--strict`: warnings also make the exit code 1.
@@ -221,7 +221,7 @@ The run exits 0: without `--strict`, warnings alone do not change the exit code.
 - Scope: `docs/mkb/**/*.md` excluding `docs/mkb/templates/`, plus the `--adr-dir` directory for the checks named above.
 - Record checks (E1 to E4 and the front matter checks) apply to `decisions/`, `tasks/` (including `archive/`), `questions/`, `knowledge/` and the singletons that [03-metadata.md](03-metadata.md) §3.1 requires front matter on (`INDEX.md`, `agents/RULES.md`, `project/ARCHITECTURE.md`).
 - Files under `handoff/` get only W1 and W4, plus E3 when they contain front matter; the same E3 fires for any file on which [03-metadata.md](03-metadata.md) §3.1 forbids front matter.
-- Lines inside fenced code blocks (opened by three or more backticks or tildes) are ignored by W5, W8, W10 and W11, so RULES.md and knowledge docs can show formats in fences.
+- Lines inside fenced code blocks (opened by three or more backticks or tildes, also inside list items and blockquotes) are ignored by W5, W8, W10 and W11, so RULES.md and knowledge docs can show formats in fences.
 
 Note: `docs/mkb/templates/` is outside the scope because its placeholders (`YYYY-MM-DD`, `<handle>`) are invalid values by design.
 
@@ -234,6 +234,7 @@ Note: `docs/mkb/templates/` is outside the scope because its placeholders (`YYYY
 | E3 | front matter violates [03-metadata.md](03-metadata.md) §3.2 or §3.5: missing required key, unknown key, invalid vocabulary value, invalid date, handle or ID pattern, a conditional key rule broken, or a line other than one blank line between the closing `---` and the H1 (key order is not checked) |
 | E4 | an ID file in the wrong directory for its prefix (for example `MODULE-` outside `knowledge/modules/`) |
 | E5 | a file named `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` or `AGENTS.override.md` under `docs/mkb/` |
+| E6 | a mandatory file of [02-directory-structure.md](02-directory-structure.md) §2.3 is missing: `INDEX.md`, `agents/RULES.md`, `project/OVERVIEW.md`, `project/CONSTRAINTS.md`, `state/CURRENT.md`, `state/NEXT.md`; with `profile: full` also `project/ARCHITECTURE.md`, and `project/CONVENTIONS.md` unless INDEX has the conventions path override row |
 
 ### 9.7.6 Warnings
 
@@ -248,7 +249,7 @@ Note: `docs/mkb/templates/` is outside the scope because its placeholders (`YYYY
 | W7 | a question with `status: answered` |
 | W8 | a line starting with `> STALE ` whose date is older than 30 days |
 | W9 | a `done` or `dropped` task in `tasks/` with `closed` more than 30 days ago |
-| W10 | a TASK, ADR or knowledge ID referenced in `docs/mkb/` with no file (Q IDs are exempt: resolved questions are deleted by design; values of `formerly` are exempt) |
+| W10 | a TASK, ADR or knowledge ID referenced in `docs/mkb/` with no file (Q IDs are exempt: resolved questions are deleted by design; values of `formerly` are exempt; references inside `tasks/archive/` are exempt: archived tasks are never edited) |
 | W11 | a line starting with `<!-- guide:` outside `docs/mkb/templates/` |
 | W12 | a `blocked` task whose `blocked_by` items are all missing, `done` or `dropped` |
 | W13 | `state/NEXT.md` lists a task that is `done`, `dropped` or missing |
@@ -270,7 +271,8 @@ Example: after session S8, `sh docs/mkb/tools/mkb-check.sh next TASK` in TareLog
 
 - POSIX sh, git, `grep -E`, `sed`, `awk`, `find`, `wc` only; no bash arrays.
 - Date arithmetic in awk (days-from-civil), never `date -d` or `date -v`.
-- Strips `\r` so CRLF files do not break parsing.
+- Strips trailing spaces, tabs and `\r` from every line, so CRLF files and trailing whitespace do not break parsing.
+- Counts the characters of `summary` as UTF-8 characters, whatever the awk implementation and the locale.
 - Runs in Git Bash on Windows, Linux and macOS.
 - At most 450 lines; LF line endings.
 
@@ -285,7 +287,7 @@ mkb-check reports a file over its budget as W1; the action is to split or trim i
 | `CLAUDE.md` | own content ≤ 20 lines |
 | `.gitattributes` (MKB lines) | 4 lines |
 | `docs/mkb/INDEX.md` | ≤ 120 lines |
-| `docs/mkb/agents/RULES.md` | ≤ 500 lines |
+| `docs/mkb/agents/RULES.md` | ≤ 500 lines above section 16 |
 | `docs/mkb/project/OVERVIEW.md` | ≤ 80 lines |
 | `docs/mkb/project/ARCHITECTURE.md` | ≤ 150 lines |
 | `docs/mkb/project/CONSTRAINTS.md` | ≤ 80 lines |
@@ -304,4 +306,5 @@ mkb-check reports a file over its budget as W1; the action is to split or trim i
 - The per-file reference of [02-directory-structure.md](02-directory-structure.md) §2.3 lists the same budgets with each file's purpose and update rule.
 - The handoff budget is a hard limit that includes the H1 ([06-handoff.md](06-handoff.md) §6.3).
 - W1 covers only the files in mkb-check's scope (§9.7.4); the root files, `docs/mkb/templates/` and `mkb-check.sh` itself are outside it.
+- The RULES.md budget counts only the standard text: mkb-check stops counting at the heading `## 16. Project-specific rules`, so project rules never raise W1.
 - The AGENTS.md block budget keeps the block well inside the instruction size limits of agent tools ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.5).

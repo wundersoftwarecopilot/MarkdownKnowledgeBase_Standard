@@ -22,7 +22,7 @@ rc() { if [ "$RC" = "$1" ]; then ok; else bad "exit $RC, expected $1"; fi; }
 cnt() { n=$(printf '%s\n' "$OUT" | grep -cE -- "$1"); if [ "$n" = "$2" ]; then ok; else bad "count of /$1/ is $n, expected $2"; fi; }
 is() { if [ "$OUT" = "$1" ]; then ok; else bad "output '$OUT', expected '$1'"; fi; }
 tot() { if printf '%s\n' "$OUT" | tail -n 1 | grep -qxF "mkb-check: $1 errors, $2 warnings"; then ok; else bad "totals not $1 errors, $2 warnings"; fi; }
-fmt() { if printf '%s\n' "$OUT" | sed '$d' | grep -vE '^(ERROR E[1-5]|WARN W([1-9]|1[0-7])) [^ ]+: .+$' | grep -q .; then bad "malformed output line"; else ok; fi; }
+fmt() { if printf '%s\n' "$OUT" | sed '$d' | grep -vE '^(ERROR E[1-6]|WARN W([1-9]|1[0-7])) [^ ]+: .+$' | grep -q .; then bad "malformed output line"; else ok; fi; }
 # one error of code $1 on path $2 (message regex $3), nothing else, exit 1
 only_err() { chk; has "^ERROR $1 docs/mkb/$2: .*$3"; cnt '^ERROR' 1; cnt '^WARN' 0; rc 1; fmt; }
 # one warning of code $1 on path $2 (message regex $3), nothing else, exit 0
@@ -50,6 +50,10 @@ has '^WARN W8 docs/mkb/knowledge/modules/MODULE-CORE.md: '; has '^WARN W11 docs/
 has '^WARN W10 docs/mkb/knowledge/modules/MODULE-CORE.md: TASK-999 '; cnt '^WARN' 3; cnt '^ERROR' 0; hasnt 'ADR-999|MODULE-NOPE'
 t fence-unclosed-hides; printf '%s\n' '```text' '> STALE 2000-01-01 x: y' >> "$D/docs/mkb/knowledge/modules/MODULE-CORE.md"; chk; tot 0 0
 t fence-crlf; crlf; printf '%s\r\n' '```text' '> STALE 2000-01-01 x: y' '<!-- guide: a -->' '```' '> STALE 2000-01-01 x: y' >> "$D/docs/mkb/knowledge/modules/MODULE-CORE.md"; chk; cnt '^WARN W8' 1; cnt '^WARN' 1
+t fence-in-list; printf '%s\n' '' '1. Mark a wrong section like this:' '' '    ```markdown' '    > STALE 2000-01-01 x: y. Tracking TASK-123.' '    See MODULE-EXAMPLE.' '    ```' 'After TASK-124.' >> "$D/docs/mkb/knowledge/services/SERVICE-API.md"; only_warn W10 docs/mkb/knowledge/services/SERVICE-API.md 'TASK-124 '
+t fence-in-blockquote; printf '%s\n' '' '> ```text' '> TASK-777 and INT-EXAMPLE' '> ```' '> After TASK-778.' >> "$D/docs/mkb/knowledge/services/SERVICE-API.md"; only_warn W10 docs/mkb/knowledge/services/SERVICE-API.md 'TASK-778 '
+t fence-blockquote-ends; printf '%s\n' '' '> ```text' '> TASK-777' '' 'See TASK-778.' >> "$D/docs/mkb/knowledge/services/SERVICE-API.md"; only_warn W10 docs/mkb/knowledge/services/SERVICE-API.md 'TASK-778 '
+t fence-quoted-close-inside; printf '%s\n' '' '```markdown' '> ```text' '> ```' 'TASK-779' '```' 'See TASK-780.' >> "$D/docs/mkb/knowledge/services/SERVICE-API.md"; only_warn W10 docs/mkb/knowledge/services/SERVICE-API.md 'TASK-780 '
 
 # ---------- E1 to E5 ----------
 t E1-archive-dup; cp "$D/docs/mkb/tasks/TASK-003.md" "$D/docs/mkb/tasks/archive/TASK-003.md"; only_err E1 tasks/archive/TASK-003.md 'id TASK-003 also used by docs/mkb/tasks/TASK-003.md'
@@ -64,6 +68,15 @@ t E5-top; printf '# x\n' > "$D/docs/mkb/CLAUDE.md"; only_err E5 CLAUDE.md 'tool 
 t E5-templates; printf '# x\n' > "$D/docs/mkb/templates/AGENTS.md"; only_err E5 templates/AGENTS.md ''
 t E5-override; printf '# x\n' > "$D/docs/mkb/agents/AGENTS.override.md"; only_err E5 agents/AGENTS.override.md ''
 t E5-gemini-lower; printf '# x\n' > "$D/docs/mkb/project/gemini.md"; only_err E5 project/gemini.md ''
+t E6-current; rm "$D/docs/mkb/state/CURRENT.md"; only_err E6 state/CURRENT.md 'mandatory file is missing'
+t E6-rules; rm "$D/docs/mkb/agents/RULES.md"; only_err E6 agents/RULES.md 'mandatory file is missing'
+t E6-index; rm "$D/docs/mkb/INDEX.md"; only_err E6 INDEX.md 'mandatory file is missing'
+t E6-min-set; rm "$D/docs/mkb/project/OVERVIEW.md" "$D/docs/mkb/project/CONSTRAINTS.md" "$D/docs/mkb/state/NEXT.md"; chk; cnt '^ERROR E6 ' 3; has '^ERROR E6 docs/mkb/project/OVERVIEW.md: '; has '^ERROR E6 docs/mkb/project/CONSTRAINTS.md: '; has '^ERROR E6 docs/mkb/state/NEXT.md: '; cnt '^WARN' 0; rc 1; fmt
+t E6-full-architecture; rm "$D/docs/mkb/project/ARCHITECTURE.md"; only_err E6 project/ARCHITECTURE.md 'mandatory file is missing'
+t E6-full-conventions; rm "$D/docs/mkb/project/CONVENTIONS.md"; only_err E6 project/CONVENTIONS.md 'mandatory file is missing'
+t E6-conventions-override; rm "$D/docs/mkb/project/CONVENTIONS.md"; printf '%s\n' '' '## Path overrides' '| Kind | Lives at | Note |' '|---|---|---|' '| conventions | `CONTRIBUTING.md` | no project/CONVENTIONS.md; CONTRIBUTING.md is authoritative |' >> "$D/docs/mkb/INDEX.md"; chk; tot 0 0
+t E6-override-in-fence; rm "$D/docs/mkb/project/CONVENTIONS.md"; printf '%s\n' '```markdown' '| conventions | `CONTRIBUTING.md` | example |' '```' >> "$D/docs/mkb/INDEX.md"; only_err E6 project/CONVENTIONS.md ''
+t E6-minimal-lazy; ed_ INDEX.md 's/^profile: full/profile: minimal/'; rm "$D/docs/mkb/project/ARCHITECTURE.md" "$D/docs/mkb/project/CONVENTIONS.md"; chk; tot 0 0
 
 # ---------- E3: front matter (C.2, C.5) ----------
 t E3-missing-key; ed_ tasks/TASK-003.md '/^priority:/d'; only_err E3 tasks/TASK-003.md 'missing required key priority'
@@ -74,7 +87,7 @@ t E3-bad-priority; ed_ tasks/TASK-003.md 's/^priority: high/priority: urgent/'; 
 t E3-bad-type; ed_ tasks/TASK-003.md 's/^type: task/type: story/'; only_err E3 tasks/TASK-003.md 'invalid type story'
 t E3-type-location; ed_ tasks/TASK-008.md 's/^type: task/type: adr/'; only_err E3 tasks/TASK-008.md 'does not fit this location, expected task'
 t E3-invalid-date; ed_ tasks/TASK-002.md 's/^closed: 2026-09-10/closed: 2026-02-30/'; only_err E3 tasks/TASK-002.md 'invalid closed 2026-02-30'
-t E3-quoted-date; ed_ knowledge/database/DB-MAIN.md 's/^verified: 2026-09-10/verified: "2026-09-10"/'; only_err E3 knowledge/database/DB-MAIN.md 'invalid verified'
+t E3-quoted-date; ed_ knowledge/database/DB-MAIN.md 's/^verified: 2026-09-10/verified: "2026-09-10"/'; only_err E3 knowledge/database/DB-MAIN.md 'breaks the MKB YAML subset'
 t E3-leap-ok; ed_ tasks/TASK-003.md 's/^created: 2026-09-05/created: 2024-02-29/'; chk; tot 0 0
 t E3-leap-bad; ed_ tasks/TASK-003.md 's/^created: 2026-09-05/created: 2100-02-29/'; only_err E3 tasks/TASK-003.md 'invalid created'
 t E3-empty-value; ed_ knowledge/integrations/INT-DEVICE.md 's/^verified: 2026-09-10$/verified: 2026-09-10\nrelated:/'; only_err E3 knowledge/integrations/INT-DEVICE.md 'invalid front matter line: related:'
@@ -103,22 +116,44 @@ t E3-code-missing-module; ed_ knowledge/modules/MODULE-CORE.md '/^code:/d'; only
 t E3-code-optional-int; chk; hasnt 'INT-DEVICE'
 t E3-summary-long; ed_ knowledge/services/SERVICE-API.md "s/^summary: .*/summary: $(printf 'x%.0s' $(seq 1 121))/"; only_err E3 knowledge/services/SERVICE-API.md 'invalid summary'
 t E3-summary-120; ed_ knowledge/services/SERVICE-API.md "s/^summary: .*/summary: $(printf 'x%.0s' $(seq 1 120))/"; chk; tot 0 0
+t E3-summary-120-utf8; ed_ knowledge/services/SERVICE-API.md "s/^summary: .*/summary: $(printf '\303\240%.0s' $(seq 1 120))/"
+OUT=$(LC_ALL=C "$SHX" "$CHK" --root "$D" --no-git --today $TD 2>/dev/null); tot 0 0; OUT=$(LC_ALL=C.UTF-8 "$SHX" "$CHK" --root "$D" --no-git --today $TD 2>/dev/null); tot 0 0
+t E3-summary-121-utf8; ed_ knowledge/services/SERVICE-API.md "s/^summary: .*/summary: $(printf '\303\240%.0s' $(seq 1 121))/"; only_err E3 knowledge/services/SERVICE-API.md 'invalid summary'
+OUT=$(LC_ALL=C.UTF-8 "$SHX" "$CHK" --root "$D" --no-git --today $TD 2>/dev/null); tot 1 0
 t E3-code-dotslash; ed_ tasks/TASK-003.md 's/^code: .*/code: [.\/src\/core\/]/'; only_err E3 tasks/TASK-003.md 'invalid code item ./src/core/'
 t E3-code-glob; ed_ tasks/TASK-003.md 's/^code: .*/code: [src\/core\/*.py]/'; only_err E3 tasks/TASK-003.md 'invalid code item src/core/\*.py'
 t E3-code-leading-slash; ed_ knowledge/services/SERVICE-API.md 's/^code: .*/code: [\/src\/api\/]/'; only_err E3 knowledge/services/SERVICE-API.md 'invalid code item /src/api/'
 t E3-code-dir-no-slash; ed_ knowledge/services/SERVICE-API.md 's/^code: .*/code: [src\/api, src\/core\/parser.py]/'; only_err E3 knowledge/services/SERVICE-API.md 'invalid code item src/api$'
 t E3-mkb-version-unquoted; ed_ agents/RULES.md 's/^mkb_version: .*/mkb_version: 1.0/'; only_err E3 agents/RULES.md 'invalid mkb_version 1.0'
 t E3-profile; ed_ INDEX.md 's/^profile: full/profile: large/'; only_err E3 INDEX.md 'invalid profile large'
+t E3-status-two-words; ed_ tasks/TASK-003.md 's/^status: todo$/status: todo in-progress/'; only_err E3 tasks/TASK-003.md 'invalid status todo in-progress'
+t E3-priority-two-words; ed_ tasks/TASK-003.md 's/^priority: high$/priority: high normal/'; only_err E3 tasks/TASK-003.md 'invalid priority high normal'
+t E3-profile-two-words; ed_ INDEX.md 's/^profile: full$/profile: minimal full/'; only_err E3 INDEX.md 'invalid profile minimal full'
+t E3-adr-status-two-words; ed_ decisions/ADR-001.md 's/^status: accepted$/status: accepted rejected/'; only_err E3 decisions/ADR-001.md 'invalid status accepted rejected'
 t E3-index-missing-profile; ed_ INDEX.md '/^profile:/d'; only_err E3 INDEX.md 'missing required key profile'
 t E3-arch-missing-verified; ed_ project/ARCHITECTURE.md '/^verified:/d'; only_err E3 project/ARCHITECTURE.md 'missing required key verified'
 t E3-fm-forbidden-overview; ed_ project/OVERVIEW.md '1s/^/---\ntype: overview\n---\n/'; only_err E3 project/OVERVIEW.md 'front matter is not allowed'
 t E3-fm-forbidden-next; ed_ state/NEXT.md '1s/^/---\ntype: next\n---\n/'; only_err E3 state/NEXT.md 'front matter is not allowed'
 t E3-fm-forbidden-handoff; ed_ handoff/TASK-005.md '1s/^/---\ntype: handoff\n---\n/'; only_err E3 handoff/TASK-005.md 'front matter is not allowed in a handoff'
 t E3-question-owner-agent; ed_ questions/Q-001.md 's/^owner: alice/owner: claude-code/'; only_err E3 questions/Q-001.md 'invalid owner claude-code'
+t E3-question-owner-none; ed_ questions/Q-001.md 's/^owner: alice/owner: none/'; only_err E3 questions/Q-001.md 'invalid owner none'
+t E3-question-asked-by-none; ed_ questions/Q-001.md 's/^asked_by: .*/asked_by: none/'; only_err E3 questions/Q-001.md 'invalid asked_by none'
+t E3-deciders-none; ed_ decisions/ADR-001.md 's/^deciders: \[alice\]$/deciders: [none]/'; only_err E3 decisions/ADR-001.md 'invalid deciders item none'
 t E3-owner-uppercase; ed_ tasks/TASK-005.md 's/^owner: claude-code/owner: Bob/'; only_err E3 tasks/TASK-005.md 'invalid owner Bob'
 t E3-owner-at; ed_ tasks/TASK-005.md 's/^owner: claude-code/owner: @bob/'; only_err E3 tasks/TASK-005.md 'breaks the MKB YAML subset: @bob'
 t E3-colon-space; ed_ knowledge/database/DB-MAIN.md 's/^summary: .*/summary: SQLite store: WAL mode/'; only_err E3 knowledge/database/DB-MAIN.md 'breaks the MKB YAML subset'
 t E3-space-hash; ed_ knowledge/database/DB-MAIN.md 's/^summary: .*/summary: SQLite store #1/'; only_err E3 knowledge/database/DB-MAIN.md 'breaks the MKB YAML subset'
+t E3-hash-start; ed_ knowledge/troubleshooting/TS-DB-LOCKED.md 's/^summary: .*/summary: #1 cause of lost readings/'; only_err E3 knowledge/troubleshooting/TS-DB-LOCKED.md 'breaks the MKB YAML subset'
+t E3-quote-start; ed_ knowledge/troubleshooting/TS-DB-LOCKED.md 's/^summary: .*/summary: "database is locked" errors during reports/'; only_err E3 knowledge/troubleshooting/TS-DB-LOCKED.md 'breaks the MKB YAML subset'
+t E3-apostrophe-start; ed_ knowledge/troubleshooting/TS-DB-LOCKED.md "s/^summary: .*/summary: 'database is locked' errors during reports/"; only_err E3 knowledge/troubleshooting/TS-DB-LOCKED.md 'breaks the MKB YAML subset'
+t E3-dash-space-start; ed_ knowledge/troubleshooting/TS-DB-LOCKED.md 's/^summary: .*/summary: - frames lost when the link drops/'; only_err E3 knowledge/troubleshooting/TS-DB-LOCKED.md 'breaks the MKB YAML subset'
+t E3-question-space-start; ed_ knowledge/troubleshooting/TS-DB-LOCKED.md 's/^summary: .*/summary: ? frames lost/'; only_err E3 knowledge/troubleshooting/TS-DB-LOCKED.md 'breaks the MKB YAML subset'
+t E3-comma-start; ed_ knowledge/troubleshooting/TS-DB-LOCKED.md 's/^summary: .*/summary: ,comma start/'; only_err E3 knowledge/troubleshooting/TS-DB-LOCKED.md 'breaks the MKB YAML subset'
+t E3-dash-word-ok; ed_ knowledge/troubleshooting/TS-DB-LOCKED.md 's/^summary: .*/summary: -frames lost when the link drops/'; chk; tot 0 0
+t E3-quoted-list-item; ed_ questions/Q-001.md 's/^related: .*/related: ["TASK-004"]/'; only_err E3 questions/Q-001.md 'invalid item in related'
+t E3-bom; printf '\357\273\277' | cat - "$D/docs/mkb/tasks/TASK-003.md" > "$D/x"; mv "$D/x" "$D/docs/mkb/tasks/TASK-003.md"; only_err E3 tasks/TASK-003.md 'byte order mark'
+t E3-trailing-space-delimiters; ed_ tasks/TASK-003.md '1s/^---$/--- /; 9s/^---$/---\t/'; chk; tot 0 0
+t E3-whitespace-blank-line; ed_ decisions/ADR-004.md 's/^$/  /'; chk; tot 0 0
 t E3-no-fm; ed_ knowledge/troubleshooting/TS-DB-LOCKED.md '1,7d'; only_err E3 knowledge/troubleshooting/TS-DB-LOCKED.md 'missing front matter'
 t E3-unclosed-fm; ed_ questions/Q-001.md '9d'; only_err E3 questions/Q-001.md 'not closed'
 t E3-dup-key; ed_ tasks/TASK-008.md 's/^owner: none$/owner: none\nowner: bob/'; only_err E3 tasks/TASK-008.md 'duplicate key owner'
@@ -132,6 +167,8 @@ t E3-related-scalar; ed_ questions/Q-001.md 's/^related: .*/related: TASK-004/';
 t E3-related-lowercase; ed_ questions/Q-001.md 's/^related: .*/related: [task-004]/'; only_err E3 questions/Q-001.md 'invalid related item task-004'
 t E3-related-tracker-ok; ed_ questions/Q-001.md 's/^related: .*/related: [TASK-004, GH-123, OPS-45]/'; chk; tot 0 0
 t E3-formerly-bad; ed_ tasks/TASK-007.md 's/^formerly: .*/formerly: ADR-006/'; only_err E3 tasks/TASK-007.md 'invalid formerly ADR-006'
+t E3-formerly-knowledge-cross-kind; ed_ knowledge/modules/MODULE-CORE.md 's/^verified: 2026-09-10$/verified: 2026-09-10\nformerly: SERVICE-CORE/'; chk; tot 0 0
+t E3-formerly-knowledge-task; ed_ knowledge/modules/MODULE-CORE.md 's/^verified: 2026-09-10$/verified: 2026-09-10\nformerly: TASK-001/'; only_err E3 knowledge/modules/MODULE-CORE.md 'invalid formerly TASK-001'
 t E3-blank-in-fm; ed_ tasks/TASK-008.md 's/^owner: none$/owner: none\n/'; only_err E3 tasks/TASK-008.md 'invalid front matter line: $'
 t E3-knowledge-4-words; mv "$D/docs/mkb/knowledge/integrations/INT-DEVICE.md" "$D/docs/mkb/knowledge/integrations/INT-A-B-C-D.md"; ed_ knowledge/integrations/INT-A-B-C-D.md 's/^id: INT-DEVICE/id: INT-A-B-C-D/'; ed_ decisions/ADR-003.md 's/INT-DEVICE/INT-A-B-C-D/'; err_w10 E3 knowledge/integrations/INT-A-B-C-D.md 'invalid id' INT-DEVICE
 t E3-crlf-still-checked; crlf; ed_ tasks/TASK-003.md '/^priority:/d'; only_err E3 tasks/TASK-003.md 'missing required key priority'
@@ -141,6 +178,10 @@ t W1-task; i=0; while [ $i -lt 41 ]; do echo "- 2026-09-15 bob: note $i" >> "$D/
 t W1-task-60; i=0; while [ $i -lt 40 ]; do echo "- 2026-09-15 bob: note $i" >> "$D/docs/mkb/tasks/TASK-003.md"; i=$((i + 1)); done; chk; tot 0 0
 t W1-handoff; i=0; while [ $i -lt 17 ]; do echo "- line $i" >> "$D/docs/mkb/handoff/TASK-005.md"; i=$((i + 1)); done; only_warn W1 docs/mkb/handoff/TASK-005.md '31 lines, budget 30'
 t W1-next; i=0; while [ $i -lt 9 ]; do echo "- TASK-003: again $i" >> "$D/docs/mkb/state/NEXT.md"; i=$((i + 1)); done; only_warn W1 docs/mkb/state/NEXT.md '16 lines, budget 15'
+t W1-rules-section-16-exempt; seq 1 600 | sed 's/^/- project rule /' >> "$D/docs/mkb/agents/RULES.md"; chk; tot 0 0
+rules_above() { f=$D/docs/mkb/agents/RULES.md; n=$(grep -n '^## 16\. ' "$f" | cut -d: -f1); { head -n $((n - 1)) "$f"; seq 1 $(($1 - n + 1)) | sed 's/^/standard line /'; tail -n +$n "$f"; } > "$f.x"; mv "$f.x" "$f"; }
+t W1-rules-500-above; rules_above 500; chk; tot 0 0
+t W1-rules-501-above; rules_above 501; only_warn W1 docs/mkb/agents/RULES.md '501 lines above section 16, budget 500'
 t W4-done; cp "$D/docs/mkb/handoff/TASK-005.md" "$D/docs/mkb/handoff/TASK-002.md"; only_warn W4 docs/mkb/handoff/TASK-002.md 'TASK-002 is done'
 t W4-dropped; cp "$D/docs/mkb/handoff/TASK-005.md" "$D/docs/mkb/handoff/TASK-007.md"; only_warn W4 docs/mkb/handoff/TASK-007.md 'TASK-007 is dropped'
 t W4-missing; cp "$D/docs/mkb/handoff/TASK-005.md" "$D/docs/mkb/handoff/TASK-050.md"; only_warn W4 docs/mkb/handoff/TASK-050.md 'TASK-050 is missing'
@@ -205,11 +246,13 @@ t usage-today-format; chk --today 20260923; rc 2
 t usage-today-novalue; run --root "$D" --today; rc 2
 t usage-next-kind; run --root "$D" --no-git next FOO; rc 2
 t usage-next-nokind; run --root "$D" --no-git next; rc 2
+t usage-next-no-mkb; mkdir -p "$D/empty"; run --root "$D/empty" --no-git next TASK; rc 2; is ''; git -C "$D/empty" init -q -b main; run --root "$D/empty" next Q; rc 2; is ''
+t usage-next-adr-dir-missing; run --root "$D" --no-git --adr-dir docs/nope next ADR; rc 2; is ''
 t usage-adr-dir-missing; chk --adr-dir docs/nope; rc 2
 
 # ---------- next ----------
-t next-empty; mkdir -p "$D/e"; for k in TASK ADR Q; do run --root "$D/e" --no-git next $k; is "$k-001"; rc 0; done
-t next-empty-git; mkdir -p "$D/e"; git -C "$D/e" init -q -b main; for k in TASK ADR Q; do run --root "$D/e" next $k; is "$k-001"; done
+t next-empty; mkdir -p "$D/e/docs/mkb"; for k in TASK ADR Q; do run --root "$D/e" --no-git next $k; is "$k-001"; rc 0; done
+t next-empty-git; mkdir -p "$D/e/docs/mkb"; git -C "$D/e" init -q -b main; for k in TASK ADR Q; do run --root "$D/e" next $k; is "$k-001"; done
 t next-worktree; run --root "$D" --no-git next TASK; is TASK-009; run --root "$D" --no-git next ADR; is ADR-005; run --root "$D" --no-git next Q; is Q-002
 t next-history; ginit 2026-09-01
 git -C "$D" checkout -q -b other; printf '# x\n' > "$D/docs/mkb/tasks/TASK-012.md"; gadd 2026-09-02 add12; git -C "$D" checkout -q main
@@ -220,6 +263,10 @@ run --root "$D" --no-git next TASK; is TASK-009; run --root "$D" --no-git next Q
 printf '# x\n' > "$D/docs/mkb/tasks/TASK-020.md"; grun next TASK; is TASK-021
 t next-1000; for n in 998 999; do printf '# x\n' > "$D/docs/mkb/tasks/TASK-$n.md"; done; run --root "$D" --no-git next TASK; is TASK-1000
 t next-from-subdir; ginit 2026-09-01; OUT=$(cd "$D/src/core" && "$SHX" "$CHK" next Q 2>/dev/null); is Q-002
+t next-renamed-on-branch; ginit 2026-09-01; git -C "$D" checkout -q -b other; git -C "$D" mv docs/mkb/decisions/ADR-004.md docs/mkb/decisions/ADR-007.md; gadd 2026-09-02 renumber; git -C "$D" checkout -q main; grun next ADR; is ADR-008
+t shallow-clone; ginit 2026-09-01; git -C "$D" branch claude-code/task-005-parser; S=$W/s$N; git clone -q --depth 1 -c core.autocrlf=false "file://$D" "$S"
+run --root "$S" next Q; rc 2; is ''; OUT=$ERR; has 'shallow clone: run git fetch --unshallow first'
+run --root "$S" --today $TD; rc 0; tot 0 0; OUT=$ERR; has 'shallow clone; running as with --no-git'
 
 # ---------- adopted ADR directory ----------
 adrdir() { rm -rf "$D/docs/mkb/decisions"; mkdir -p "$D/docs/adr"; for f in 0001-record-architecture-decisions 0002-parse-frames 0003-render-pdf 0004-use-csv; do printf '# %s\n\nDate: 2026-09-01\n\n## Status\n\nAccepted\n' "$f" > "$D/docs/adr/$f.md"; done; printf 'not an ADR\n' > "$D/docs/adr/README.md"; }
@@ -232,6 +279,9 @@ t adr-next; adrdir; run --root "$D" --no-git --adr-dir docs/adr next ADR; is ADR
 t adr-next-history; adrdir; ginit 2026-09-01; printf '# x\n' > "$D/docs/adr/0007-temp.md"; gadd 2026-09-02 add7; rm "$D/docs/adr/0007-temp.md"; gadd 2026-09-03 del7
 grun --adr-dir docs/adr next ADR; is ADR-0008; run --root "$D" --no-git --adr-dir docs/adr next ADR; is ADR-0005
 t adr-next-empty; mkdir -p "$D/docs/adr2"; run --root "$D" --no-git --adr-dir docs/adr2 next ADR; is ADR-001
+t adr-next-other-files; adrdir; mkdir -p "$D/docs/adr/assets"; printf 'png' > "$D/docs/adr/assets/2024-05-lane-layout.png"; printf 'x' > "$D/docs/adr/0009-notes.txt"; run --root "$D" --no-git --adr-dir docs/adr next ADR; is ADR-0005
+ginit 2026-09-01; grun --adr-dir docs/adr next ADR; is ADR-0005
+t adr-next-quoted-path; adrdir; ginit 2026-09-01; f="$D/docs/adr/0010-caff$(printf '\303\250').md"; printf '# x\n' > "$f"; gadd 2026-09-02 add10; rm "$f"; gadd 2026-09-03 del10; grun --adr-dir docs/adr next ADR; is ADR-0011
 t adr-in-mkb; mkdir -p "$D/docs/mkb/adr"; printf '# ADR 1\n\nSee TASK-003.\n<!-- guide: x -->\n' > "$D/docs/mkb/adr/0001-first.md"; chk --adr-dir docs/mkb/adr; has '^WARN W11 docs/mkb/adr/0001-first.md: '; cnt '^ERROR' 0; cnt '^WARN' 1
 
 # ---------- git-backed checks ----------

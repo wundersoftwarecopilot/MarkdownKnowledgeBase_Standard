@@ -12,7 +12,7 @@ Written YYYY-MM-DD by <handle> on branch `<branch>`.
 <!-- guide: optional; traps specific to this in-flight work; durable gotchas go to a knowledge doc now, not here. -->
 
 ## Dead ends
-<!-- guide: optional; approaches tried and rejected, one line each with the reason. -->
+<!-- guide: optional; approaches tried and rejected, one line each with the reason; a reason that stays true goes to a knowledge doc now, and the line names its ID. -->
 
 ## Read first
 <!-- guide: IDs and paths the next session reads before anything else; pointers only, no copies. -->
