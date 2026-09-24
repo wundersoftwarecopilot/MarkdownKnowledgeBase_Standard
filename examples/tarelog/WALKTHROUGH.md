@@ -324,7 +324,7 @@ The two edits of `state/CURRENT.md`, in PR #12 and in marta's coordination commi
 
 ## S5 2026-09-08: a question blocks a task
 
-codex, run by luca in Codex CLI on his laptop, on branch `codex/task-004-sftp-delivery`; luca approves each git command it runs that needs the network or writes to `.git` (`git fetch`, `git worktree`, `git commit`, `git push`).
+codex, run by luca in Codex CLI on his laptop, on branch `codex/task-004-sftp-delivery`; luca approves each git command it runs that needs the network or writes to `.git` (`git fetch`, `git worktree`, `git add`, `git commit`, `git push`).
 Goal: TASK-004, now the first ID in NEXT that is `todo` with `owner: none`: upload the daily report to the Beta Haulage SFTP server.
 
 ### What they read

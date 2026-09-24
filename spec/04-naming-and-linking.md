@@ -56,7 +56,7 @@ Tool-named instruction files are forbidden under `docs/mkb/` ([02-directory-stru
 
 The next number is 1 + the highest number ever added on any fetched ref, not the highest number in your working tree.
 
-1. `git fetch --all --quiet` (skip with no remote); in a shallow clone, run `git fetch --unshallow` first, because a shallow history hides the numbers of deleted questions.
+1. `git fetch --all --quiet` (skip with no remote); in a shallow clone (`git rev-parse --is-shallow-repository` prints `true`), run `git fetch --unshallow` first, because a shallow history hides the numbers of deleted questions.
 2. List every file ever added under the record directory on any ref:
    - Tasks: `git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/tasks`
    - ADRs: `git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/decisions` (or the ADR directory adopted in place, [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4)

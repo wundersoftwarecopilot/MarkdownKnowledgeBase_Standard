@@ -54,6 +54,7 @@ t fence-in-list; printf '%s\n' '' '1. Mark a wrong section like this:' '' '    `
 t fence-in-blockquote; printf '%s\n' '' '> ```text' '> TASK-777 and INT-EXAMPLE' '> ```' '> After TASK-778.' >> "$D/docs/mkb/knowledge/services/SERVICE-API.md"; only_warn W10 docs/mkb/knowledge/services/SERVICE-API.md 'TASK-778 '
 t fence-blockquote-ends; printf '%s\n' '' '> ```text' '> TASK-777' '' 'See TASK-778.' >> "$D/docs/mkb/knowledge/services/SERVICE-API.md"; only_warn W10 docs/mkb/knowledge/services/SERVICE-API.md 'TASK-778 '
 t fence-quoted-close-inside; printf '%s\n' '' '```markdown' '> ```text' '> ```' 'TASK-779' '```' 'See TASK-780.' >> "$D/docs/mkb/knowledge/services/SERVICE-API.md"; only_warn W10 docs/mkb/knowledge/services/SERVICE-API.md 'TASK-780 '
+t fence-indented-inside-fence; printf '%s\n' '' '```markdown' '1. Mark a wrong section like this:' '    ```text' '    TASK-781' '    ```' '```' 'See TASK-782.' >> "$D/docs/mkb/knowledge/services/SERVICE-API.md"; only_warn W10 docs/mkb/knowledge/services/SERVICE-API.md 'TASK-782 '
 
 # ---------- E1 to E5 ----------
 t E1-archive-dup; cp "$D/docs/mkb/tasks/TASK-003.md" "$D/docs/mkb/tasks/archive/TASK-003.md"; only_err E1 tasks/archive/TASK-003.md 'id TASK-003 also used by docs/mkb/tasks/TASK-003.md'
@@ -265,7 +266,7 @@ t next-1000; for n in 998 999; do printf '# x\n' > "$D/docs/mkb/tasks/TASK-$n.md
 t next-from-subdir; ginit 2026-09-01; OUT=$(cd "$D/src/core" && "$SHX" "$CHK" next Q 2>/dev/null); is Q-002
 t next-renamed-on-branch; ginit 2026-09-01; git -C "$D" checkout -q -b other; git -C "$D" mv docs/mkb/decisions/ADR-004.md docs/mkb/decisions/ADR-007.md; gadd 2026-09-02 renumber; git -C "$D" checkout -q main; grun next ADR; is ADR-008
 t shallow-clone; ginit 2026-09-01; git -C "$D" branch claude-code/task-005-parser; S=$W/s$N; git clone -q --depth 1 -c core.autocrlf=false "file://$D" "$S"
-run --root "$S" next Q; rc 2; is ''; OUT=$ERR; has 'shallow clone: run git fetch --unshallow first'
+run --root "$S" next Q; rc 2; is ''; OUT=$ERR; has 'shallow clone: run git fetch --unshallow first'; run --root "$S" next TASK; rc 0; is TASK-009; run --root "$S" next ADR; rc 0; is ADR-005
 run --root "$S" --today $TD; rc 0; tot 0 0; OUT=$ERR; has 'shallow clone; running as with --no-git'
 
 # ---------- adopted ADR directory ----------

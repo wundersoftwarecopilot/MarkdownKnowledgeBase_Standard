@@ -13,7 +13,7 @@ Claims, blockers and questions are defined in [08-tasks-and-questions.md](08-tas
 - Never push to or force-push a branch you did not create; a cloud agent and a local agent never share a branch.
 - Exception: once the session that owns a PR branch has ended, a human reviewer MAY add commits to it (for example to set an ADR to `accepted` during review); never force-push it.
 - Two actors on one task at the same time is a claim violation, not a merge problem: the later actor stops.
-- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); at session start, first run `git merge --ff-only origin/<your-branch>` so your branch keeps commits a reviewer added; keep branches to a few days.
+- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); at session start, first run `git merge --ff-only origin/<your-branch>` so your branch keeps commits a reviewer added; if the fast-forward is refused, your branch and the remote branch both have new commits: stop and ask the human; keep branches to a few days.
 - Exception: a branch whose `git log origin/main..HEAD` shows a `mkb: renumber` commit ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) takes the default branch by `git merge origin/main`, never a rebase, until it merges.
 
 Rebasing a work branch at session start and before a push:
@@ -26,7 +26,6 @@ git push --force-with-lease
 ```
 
 Note: `--force-with-lease` refuses the push only when the remote branch moved after your last fetch; it overwrites commits you fetched but did not take in, which is why the session start fast-forwards first.
-If the fast-forward is refused, your branch and the remote branch both have new commits: ask the human.
 
 ### 12.1.1 Where a change lands
 
@@ -119,7 +118,7 @@ Otherwise rebase the temporary worktree onto `origin/main`, then read the result
 
 - The rebase is clean and `git rev-list --count origin/main..HEAD` does not print `0`: someone changed other files; push again.
 - An add/add conflict on a new `tasks/TASK-NNN.md` or `questions/Q-NNN.md`: someone took that number; abort and allocate again ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3).
-- A conflict on the task file you are claiming, or a count of `0` after a clean claim rebase (an identical claim is already there): the task is taken; pick another ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4).
+- A conflict on the task file you are claiming, or a count of `0` after a clean claim rebase (an identical claim is already there): the task is taken; pick another, or for a task you were given tell the human ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4).
 - A conflict on any other MKB file: someone changed it first; abort, re-read, decide again.
 
 Example: in TareLog session S2 (2026-09-02), claude-code allocated TASK-005 in its temporary worktree while marta pushed her own TASK-005 between claude-code's fetch and its push.
@@ -248,7 +247,7 @@ The cookbook covers MKB files only.
 | add/add on `decisions/ADR-NNN.md`, or on an ID already on a branch | your branch already has `mkb: renumber <that ID> -> <NEW-ID>` in `git log origin/main..HEAD`: `git rebase --abort`, then `git merge origin/main`; never renumber it again ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4 step 6); otherwise ID collision: the branch merging second renumbers its own item ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
 | add/add on a knowledge doc | same subject documented twice: merge the content into one doc |
 | a knowledge doc's `verified` line | both sides bumped it: keep the older date, unless you re-check the merged doc against the merged code |
-| task `status`, `owner`, `branch` lines, both sides a claim | claim race: the default branch wins; the other actor stops and picks another task |
+| task `status`, `owner`, `branch` lines, both sides a claim | claim race: the default branch wins; the other actor stops and picks another task (a task it was given: it tells the human) |
 | task `status` line, one side a `done` or `dropped` edit (for example a PR's done edit against a release on the default branch) | not a claim race: stop and ask the lead which side wins; `owner`, `branch` and `closed` may have merged without a conflict, so set them to match the chosen `status`, then run `mkb-check.sh`: no E3 |
 | task Notes, acceptance criteria, `related`, `code` | keep both sides; Notes in date order |
 | `state/CURRENT.md` bullets | keep both sides; for the same bullet keep the newer date; a deletion wins when the fact is no longer true |
@@ -322,7 +321,7 @@ Example: in TareLog session S3, marta claims TASK-003 for Codex cloud with `TASK
 
 | Collision | How it surfaces | Outcome |
 |---|---|---|
-| Two actors claim the same task | the later actor's check in its temporary worktree shows the task taken; if both worktrees predate the first push, the later claim push is rejected and its rebase conflicts on `tasks/TASK-NNN.md`; an identical claim from another session with the same handle leaves `git rev-list --count origin/main..HEAD` at `0` | the later actor picks another task ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) |
+| Two actors claim the same task | the later actor's check in its temporary worktree shows the task taken; if both worktrees predate the first push, the later claim push is rejected and its rebase conflicts on `tasks/TASK-NNN.md`; an identical claim from another session with the same handle leaves `git rev-list --count origin/main..HEAD` at `0` | the later actor picks another task, or tells the human if it was given that task ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) |
 | Two actors create the same TASK or Q number | the file already exists in the later actor's temporary worktree; if both worktrees predate the first push, the later push is rejected, then an add/add conflict in the coordination worktree | abort, allocate the next number, retry ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3) |
 | Two branches add the same ADR number, or two open `mkb-coord` PRs add the same ID | add/add conflict on rebase, merge or PR | the branch that merges second renumbers its own item ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |
 | A duplicate git cannot see (a new item whose number an archived task already has; an adopted ADR directory) | `mkb-check.sh` error E1; the duplicate-number check of [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4 | renumber ([04-naming-and-linking.md](04-naming-and-linking.md) §4.4) |

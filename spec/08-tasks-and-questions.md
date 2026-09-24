@@ -114,6 +114,7 @@ A claim visible to others before coding is a MUST in the full profile and a SHOU
    Otherwise rebase the temporary worktree onto `origin/main` and push again.
    A conflict in `TASK-NNN.md` means someone else claimed it: `git rebase --abort`, remove the temporary worktree (on `main`: `git reset --keep origin/main`), pick another task.
    If after the rebase `git rev-list --count origin/main..HEAD` prints `0`, your claim commit was dropped because an identical claim (same handle, another session of your tool) is already there: the task is taken; pick another task.
+   For a task you were given, "pick another task" in steps 3 and 4 means: do not code on it; tell the human, naming its `owner`.
 5. Create your branch `<you>/task-nnn-<slug>` from the updated `origin/main` (in its own worktree when agents work in parallel locally) and push it at once.
    Takeover: if the task's Notes contain `released; partial work on branch <old-branch>`, read `git show origin/<old-branch>:docs/mkb/handoff/TASK-NNN.md`, create your branch from that tip instead (`git switch -c <you>/task-nnn-<slug> origin/<old-branch>`), rebase it onto `origin/main` (merge instead if it has a `mkb: renumber` commit, [12-concurrency.md](12-concurrency.md) §12.1), push it, and verify the handoff against it; the handoff is now yours to overwrite; never push to the old branch.
 6. Dispatched agents that cannot push to the default branch (for example Codex cloud and the Copilot coding agent): the dispatching human makes the claim commit `TASK-NNN: claim for <handle>` before dispatch, with `branch: pending` if the tool names the branch later; the agent or the human replaces `pending` with the real name in the PR.
@@ -150,7 +151,7 @@ Example: before dispatching TASK-003 to Codex cloud, marta made the commit `TASK
 
 ### 8.4.3 No remote
 
-"origin/main" means local `main`; skip every fetch, pull and push; branch checks use `git branch`; coordination commits follow the no-remote variant of [12-concurrency.md](12-concurrency.md) §12.2.
+"origin/main" means local `main`; skip every fetch, pull and push, and the fast-forward to `origin/<your-branch>`; branch checks use `git branch`; coordination commits follow the no-remote variant of [12-concurrency.md](12-concurrency.md) §12.2.
 Repositories without a remote are covered as a whole in [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.7.
 
 ## 8.5 Release, stale claims and dropping

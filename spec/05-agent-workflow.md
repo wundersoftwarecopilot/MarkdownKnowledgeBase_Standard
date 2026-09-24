@@ -44,7 +44,7 @@ Reading aids for this chapter:
 ## 5.2 Before modifying code
 
 1. Update and read:
-   - `git fetch`, then `git merge --ff-only origin/<your-branch>` (it takes in commits a reviewer added, [12-concurrency.md](12-concurrency.md) §12.1), then rebase your branch onto `origin/main` (on `main` itself: `git pull --rebase`; a branch with a `mkb: renumber` commit merges instead, [12-concurrency.md](12-concurrency.md) §12.1), so that you see the claims, answers and docs that landed since your branch was cut;
+   - `git fetch`, then `git merge --ff-only origin/<your-branch>` (it takes in commits a reviewer added; refused: stop and ask the human, [12-concurrency.md](12-concurrency.md) §12.1), then rebase your branch onto `origin/main` (on `main` itself: only `git pull --rebase`, no fast-forward; a branch with a `mkb: renumber` commit merges instead, [12-concurrency.md](12-concurrency.md) §12.1), so that you see the claims, answers and docs that landed since your branch was cut;
    - `docs/mkb/INDEX.md` (skip if already read in this session);
    - `docs/mkb/state/CURRENT.md`;
    - `docs/mkb/state/NEXT.md`, only if you must choose a task.
