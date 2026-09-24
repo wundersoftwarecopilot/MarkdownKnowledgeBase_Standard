@@ -102,13 +102,13 @@ Humans follow the same rules as agents ([05-agent-workflow.md](05-agent-workflow
 
 1. Code shows what the system does; the MKB holds what code cannot show: intent, hard-won knowledge, state, open work and handoffs.
 2. Every record has an ID, the file name is the ID, and you refer to it by bare ID; never copy content between docs.
-3. One work item is one task file, one branch and one owner; the claim is visible to others before coding (a commit on the default branch, or a pushed task branch where the default branch is protected).
+3. Work you finish within the current session needs no task (the commit or PR is the record); any other work is one task file, one owner and one branch (the minimal profile allows trunk-based work), and its claim is visible to others before coding (a commit on the default branch, or a pushed task branch where the default branch is protected).
 4. `state/` describes the default branch; a handoff describes one unfinished task on its branch; neither holds knowledge.
 5. Record a discovery when you make it, in the doc where the next person will look.
 6. Constraints and accepted ADRs bind; descriptive docs follow the code; only humans accept ADRs.
 7. If nothing durable changed, update nothing; delete what is obsolete, because git remembers.
 
-Detailed in: rule 1 in §1.6; rule 2 in [04-naming-and-linking.md](04-naming-and-linking.md); rule 3 in [08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4; rule 4 in §1.6 and [06-handoff.md](06-handoff.md); rule 5 in [05-agent-workflow.md](05-agent-workflow.md) §5.5; rule 6 in §1.7 and [07-decisions.md](07-decisions.md); rule 7 in [05-agent-workflow.md](05-agent-workflow.md) §5.6 and [09-lifecycle.md](09-lifecycle.md).
+Detailed in: rule 1 in §1.6; rule 2 in [04-naming-and-linking.md](04-naming-and-linking.md); rule 3 in [08-tasks-and-questions.md](08-tasks-and-questions.md) §8.1 and §8.4 and [11-profiles.md](11-profiles.md) §11.4; rule 4 in §1.6 and [06-handoff.md](06-handoff.md); rule 5 in [05-agent-workflow.md](05-agent-workflow.md) §5.5; rule 6 in §1.7 and [07-decisions.md](07-decisions.md); rule 7 in [05-agent-workflow.md](05-agent-workflow.md) §5.6 and [09-lifecycle.md](09-lifecycle.md).
 
 ## 1.5 Record kinds and their homes
 
@@ -156,7 +156,7 @@ Each order runs from highest to lowest; the Authority section of `INDEX.md` repe
 
 - What the system does: code and tests on the default branch, then knowledge docs and `project/ARCHITECTURE.md`, then `state/CURRENT.md`, then handoffs.
   A descriptive doc that disagrees with the code is wrong.
-- What the system must do: `project/CONSTRAINTS.md`, then accepted ADRs (a superseding ADR wins), then `project/ARCHITECTURE.md` and `project/CONVENTIONS.md`, then the task's acceptance criteria.
+- What the system must do: `project/CONSTRAINTS.md`, then accepted ADRs (a superseding ADR wins), then `project/CONVENTIONS.md`, then the task's acceptance criteria.
 - What is happening now: the human in your session, then task files on the default branch, then `state/CURRENT.md`, then handoffs.
 - Never authoritative: proposed, rejected, superseded or deprecated ADRs; open questions; text under a `> STALE` banner; `tasks/archive/`; `templates/`.
 

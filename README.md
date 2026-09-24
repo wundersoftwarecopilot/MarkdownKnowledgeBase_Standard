@@ -12,12 +12,13 @@ To adopt it, copy one profile into your project, fill five short files (seven in
 
 1. Code shows what the system does; the MKB holds what code cannot show: intent, hard-won knowledge, state, open work and handoffs.
 2. Every record has an ID, the file name is the ID, and you refer to it by bare ID; never copy content between docs.
-3. One work item is one task file, one branch and one owner; the claim is visible to others before coding (a commit on the default branch, or a pushed task branch where the default branch is protected).
+3. Work you finish within the current session needs no task (the commit or PR is the record); any other work is one task file, one owner and one branch (the minimal profile allows trunk-based work), and its claim is visible to others before coding (a commit on the default branch, or a pushed task branch where the default branch is protected).
 4. `state/` describes the default branch; a handoff describes one unfinished task on its branch; neither holds knowledge.
 5. Record a discovery when you make it, in the doc where the next person will look.
 6. Constraints and accepted ADRs bind; descriptive docs follow the code; only humans accept ADRs.
 7. If nothing durable changed, update nothing; delete what is obsolete, because git remembers.
 
+A fix of at most 3 files that changes no interface, configuration, schema or dependency and is finished now takes the lite path: read the Warnings in `state/CURRENT.md` and the docs that cover your files, make the fix, correct any doc it makes wrong, update nothing else ([spec/05-agent-workflow.md](spec/05-agent-workflow.md) §5.4).
 The specification in [spec/](spec/) details these rules; [spec/01-architecture.md](spec/01-architecture.md) §1.9 maps its chapters.
 
 ## Quick start
@@ -41,6 +42,7 @@ Choose the full profile if an upgrade trigger of [spec/11-profiles.md](spec/11-p
 - In step 3 also fill ARCHITECTURE (an agent drafts it from the code, a human reviews it) and CONVENTIONS; if `CONTRIBUTING.md` already covers conventions, delete `project/CONVENTIONS.md` and add an INDEX path override row instead ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.2).
 - Add a CI job that runs `sh docs/mkb/tools/mkb-check.sh` (advisory, never blocking on warnings), and garden weekly ([spec/09-lifecycle.md](spec/09-lifecycle.md) §9.6).
 
+Once the adoption PR is merged, give each local agent tool the git and temp-directory permissions that claims need, and watch its first claim ([spec/13-adoption-and-integration.md](spec/13-adoption-and-integration.md) §13.5.4); an agent that cannot fetch or push stops before coding and asks you to push the claim.
 After adoption, agents follow the block in `AGENTS.md`; people start with [spec/01-architecture.md](spec/01-architecture.md) and the worked example [examples/tarelog/WALKTHROUGH.md](examples/tarelog/WALKTHROUGH.md).
 
 ## Repository map

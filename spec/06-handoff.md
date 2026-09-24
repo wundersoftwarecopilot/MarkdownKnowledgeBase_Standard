@@ -43,7 +43,7 @@ Written YYYY-MM-DD by <handle> on branch `<branch>`.
 <!-- guide: optional; traps specific to this in-flight work; durable gotchas go to a knowledge doc now, not here. -->
 
 ## Dead ends
-<!-- guide: optional; approaches tried and rejected, one line each with the reason. -->
+<!-- guide: optional; approaches tried and rejected, one line each with the reason; a reason that stays true goes to a knowledge doc now, and the line names its ID. -->
 
 ## Read first
 <!-- guide: IDs and paths the next session reads before anything else; pointers only, no copies. -->
@@ -81,7 +81,7 @@ What never goes in:
 | secrets or credential values | nowhere in the MKB ([05-agent-workflow.md](05-agent-workflow.md) §5.5) |
 | anything about other tasks | cross-task warnings go to `state/CURRENT.md`, section Warnings |
 
-Watch out holds traps of this in-flight work only; durable gotchas go to a knowledge doc now, not here.
+Watch out and Dead ends hold this in-flight work only; a durable gotcha, or the reason behind a dead end that stays true, goes to a knowledge doc now, and the handoff line names its ID.
 Dead ends and Watch out lines that turn out to stay true after the merge move out when the task finishes (T3, §6.5 item 3).
 
 ## 6.5 Writing and rotation
@@ -153,7 +153,7 @@ Written 2026-09-15 by codex on branch `codex/task-004-sftp-delivery`.
 ## Where it stands
 - CSV upload with key authentication works in `src/tarelog/delivery/sftp.py` (`upload_report()`); its tests pass locally and in CI.
 - Not started: retry after a failed upload, and the alert e-mail.
-- INT-HAULER-SFTP updated (`code`, `verified: 2026-09-15`); branch pushed, `git status` clean.
+- INT-HAULER-SFTP updated (`code`, a Gotchas line on parallel sessions, `verified: 2026-09-15`); branch pushed, `git status` clean.
 
 ## Next steps
 1. In `upload_report()` (sftp.py:57), retry a failed upload 3 times, 5 minutes apart.
@@ -164,7 +164,7 @@ Written 2026-09-15 by codex on branch `codex/task-004-sftp-delivery`.
 - `src/tarelog/delivery/sftp.py:88` catches the paramiko timeout and only logs it; the retry replaces that `except` block instead of wrapping it.
 
 ## Dead ends
-- Uploading several report days in parallel, one SFTP session each: the second session fails with `ChannelException: (1, 'Administratively prohibited')`; the partner allows one session per account.
+- Uploading several report days in parallel, one SFTP session each: the second session fails with `ChannelException: (1, 'Administratively prohibited')`; the partner allows one session per account (INT-HAULER-SFTP).
 
 ## Read first
 - TASK-004 (criteria marked `resolves Q-001`), INT-HAULER-SFTP, ADR-003.
@@ -177,7 +177,7 @@ Why it works:
 - The next steps are numbered and concrete, and the first one can be started immediately.
 - The line numbers in Next steps and Watch out are allowed because a handoff is not a durable doc.
 - The durable facts about the partner server (key authentication, vault path, target directory) are already in INT-HAULER-SFTP; the handoff only points to it.
-- The Dead ends line may stay true after the merge, so whoever closes the task moves it to INT-HAULER-SFTP before deleting this file (T3).
+- The Dead ends line rests on a lasting fact about the partner server, so Codex wrote it into INT-HAULER-SFTP, section Gotchas, when the error occurred (§6.4); the line names that doc, and T3 finds nothing left to move.
 - It has 23 lines, within the limit of 30.
 
 ### 6.9.2 Bad

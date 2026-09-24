@@ -24,5 +24,5 @@ Out of scope: tooling beyond the checker; monorepos with several MKBs (`spec/01-
 
 ## Glossary
 - **Brief**: `Prompt_MarkdownKnowledgeBase_Standard.md`, the original requirements.
-- **Design contract**: `dev/DESIGN-CONTRACT.md`, the decisions every writer of the standard followed; section R lists the deliverables and their verification, section S the style guide.
+- **Design contract**: `dev/DESIGN-CONTRACT.md`, the decisions every writer of the first draft (`7a880f9`) followed; section R lists the deliverables and their verification, section S the style guide. It is a frozen record: where it disagrees with `spec/`, the spec wins.
 - **Finding**: an item `F01` to `F63` of `dev/review-round-1.json`, with evidence, verdict and verified fix.

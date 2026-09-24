@@ -12,7 +12,7 @@ The project's own additions go in section 16.
 Humans follow the same rules; the only difference is that a human writes a handoff only when someone else will continue the work.
 After working, walk every row of the trigger matrix (section 3), update only the rows that fire, and end with the `MKB for humans:` lines below.
 ### Before modifying code
-1. Update and read: `git fetch`, then rebase your branch onto `origin/main` (on `main` itself: `git pull --rebase`), so that you see the claims, answers and docs that landed since your branch was cut; `docs/mkb/INDEX.md` (skip if already read in this session); `docs/mkb/state/CURRENT.md`; `docs/mkb/state/NEXT.md`, only if you must choose a task.
+1. Update and read: `git fetch`, then rebase your branch onto `origin/main` (on `main` itself: `git pull --rebase`; a branch with a `mkb: renumber` commit merges instead, section 11), so that you see the claims, answers and docs that landed since your branch was cut; `docs/mkb/INDEX.md` (skip if already read in this session); `docs/mkb/state/CURRENT.md`; `docs/mkb/state/NEXT.md`, only if you must choose a task.
 2. Know your work item: the task you were given, else the first ID in `state/NEXT.md` whose task on the default branch is `todo` with `owner: none` or you, else ask the human. No task exists and the work will outlast this session, or will be handed to someone else: create one from `templates/TASK.md` (section 5; a coordination commit, section 4, allocation step 6). Work you will finish in this session needs no task (if it ends unfinished after all, T2 creates one).
 3. Read the task file. If its Notes say `released; partial work on branch <branch>`, read the handoff on that branch and take over from it (section 5, claim step 5); otherwise read `handoff/TASK-NNN.md` on the task's branch if it exists. Verify its "Where it stands" against `git log` and `git status` before trusting it.
 4. Claim before touching code (section 5), unless the task is already yours (section 5, claim step 7).
@@ -119,25 +119,25 @@ Run it after step 1 of section 1 (branch rebased onto `origin/main`), so the wor
 | MKB-only commits | MKB-only change: `mkb: <summary>`. Gardening: `mkb: gardening YYYY-MM-DD`. Archive: `mkb: archive closed tasks`. Renumber: `mkb: renumber <OLD-ID> -> <NEW-ID> (ID collision)`. Adoption: `mkb: adopt MKB v1.0 (<profile> profile)`. |
 | PR title | starts with the work item ID when there is one |
 ### Allocating numbered IDs
-1. `git fetch --all --quiet` (skip with no remote).
-2. List every file ever added under the record directory on any ref: `git log --all --diff-filter=A --name-only --format= -- docs/mkb/<dir>` with `<dir>` = `tasks`, `decisions` (or the ADR directory adopted in place, section 15) or `questions`.
+1. `git fetch --all --quiet` (skip with no remote); in a shallow clone, run `git fetch --unshallow` first, because a shallow history hides the numbers of deleted questions.
+2. List every file ever added under the record directory on any ref: `git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/<dir>` with `<dir>` = `tasks`, `decisions` (or the ADR directory adopted in place, section 15) or `questions`.
 3. Also consider files you created but have not committed.
 4. Next ID = highest number found + 1, zero-padded to at least 3 digits (in an adopted ADR directory: padded to the width of its existing numbers, for example `ADR-NNNN`).
 5. Equivalent: `sh docs/mkb/tools/mkb-check.sh next TASK` (or `ADR`, `Q`; add `--adr-dir <dir>` for an adopted ADR directory), or the pipelines below (sh prints the next task ID, number 001 when none exists; PowerShell second).
-6. Tasks and questions: create the file from its template and push it to the default branch at once as a coordination commit (`TASK-NNN: add`, `Q-NNN: ask <owner>`; section 11 recipe), before anything refers to the ID, including follow-ups found during work. The push is a compare-and-swap: a rejected push followed by an add/add conflict when you rebase the coordination worktree means someone took that number; `git rebase --abort`, allocate again from step 1, and retry. Protected default branch: the file goes in a one-file `mkb-coord` PR (section 5, protected default branch step 5). ADRs: create the file on your work branch (it stays `proposed` there, section 8) and push the branch soon.
+6. Tasks and questions: create the file from its template and push it to the default branch at once as a coordination commit (`TASK-NNN: add`, `Q-NNN: ask <owner>`; section 11 recipe), before anything refers to the ID, including follow-ups found during work. The push is a compare-and-swap: a rejected push followed by an add/add conflict when you rebase the coordination worktree means someone took that number; `git rebase --abort`, allocate again from step 1, and retry. Protected default branch: the file goes in a one-file `mkb-coord` PR (section 5, protected default branch step 5). ADRs: create the file on your work branch (it stays `proposed` there, section 8) and push the branch soon. Until that branch merges, cite the new ADR only in files on that branch, never in a coordination commit: a renumber (below) rewrites only the lines your branch added.
 7. Dispatched agents that cannot push to the default branch never allocate TASK or Q IDs: they write `New task: <title>` or `Question for <handle>: <question>` in their `MKB for humans:` lines (section 1), and the dispatching human creates the records.
 ```sh
 git fetch --all --quiet
-git log --all --diff-filter=A --name-only --format= -- docs/mkb/tasks \
+git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/tasks \
   | grep -oE 'TASK-[0-9]+' | awk -F- '$2+0 > n { n = $2+0 } END { printf "TASK-%03d\n", n+1 }'
 ```
 ```powershell
 git fetch --all --quiet
-$max = (git log --all --diff-filter=A --name-only --format= -- docs/mkb/tasks |
+$max = (git log --all --no-renames --diff-filter=A --name-only --format= -- docs/mkb/tasks |
   Select-String -Pattern 'TASK-(\d+)' -AllMatches |
   ForEach-Object { $_.Matches } | ForEach-Object { [int]$_.Groups[1].Value } |
   Measure-Object -Maximum).Maximum
-'TASK-{0:D3}' -f ($max + 1)
+'TASK-{0:D3}' -f ([int]$max + 1)
 ```
 Numbers are never reused, including numbers of deleted questions and archived tasks.
 Gaps are normal.
@@ -146,10 +146,10 @@ Gaps are normal.
 - The procedure below covers IDs that already live on a branch when the collision shows: ADRs, and IDs in `mkb-coord` PRs under a protected default branch. Residual cases that git cannot see (an item created on a branch while another item with the same number was already archived, or an adopted ADR directory) are caught by `mkb-check.sh` error E1 and by the duplicate-number check of section 15. Rule: the branch that merges second renumbers its own item. The item on the default branch never changes.
 1. Stop the rebase or merge: `git rebase --abort` (or `git merge --abort`). This avoids the reversed meaning of "ours" and "theirs" during a rebase.
 2. Allocate the next free ID (above) after fetching.
-3. `git mv <dir>/<OLD-ID>.md <dir>/<NEW-ID>.md`, set `id: <NEW-ID>`, add `formerly: <OLD-ID>`.
+3. `git mv <dir>/<OLD-ID>.md <dir>/<NEW-ID>.md`, set `id: <NEW-ID>`, start the H1 with `# <NEW-ID>:`, add `formerly: <OLD-ID>`.
 4. Run `git diff origin/main...HEAD` and, only in lines your branch added that refer to your item, replace the old ID with the new one: other MKB files, code comments that cite it, and your handoff file name if the renumbered item is your own work item.
 5. Leave every pre-existing line that refers to the default branch's item untouched.
-6. Commit `mkb: renumber <OLD-ID> -> <NEW-ID> (ID collision)`, then run `git merge origin/main`, not a rebase: a rebase replays the commit that added `<OLD-ID>.md` and conflicts again, while a merge compares trees and sees no conflict. From then on this branch takes the default branch by merge (exception to section 11). Push, and write "Renumbered <OLD-ID> -> <NEW-ID> (collision)" in the PR description.
+6. Commit `mkb: renumber <OLD-ID> -> <NEW-ID> (ID collision)`, then run `git merge origin/main`, not a rebase: a rebase replays the commit that added `<OLD-ID>.md` and conflicts again, while a merge compares trees and sees no conflict. From then on this branch takes the default branch by merge (exception to section 11). Push, and write "Renumbered <OLD-ID> -> <NEW-ID> (collision); merge with a merge commit or squash, not rebase-merge" in the PR description.
 7. Already pushed commit messages keep the old ID; `formerly` lets `git grep -w <OLD-ID>` find both records.
 - Knowledge-name collision (two branches both created the same `INT-<NAME>.md`): both documented the same thing; merge the content into one doc by hand; keep the older `verified` unless you re-checked the merged doc against the merged code (section 11).
 ### Links
@@ -193,7 +193,7 @@ Gaps are normal.
 2. `git show origin/main:docs/mkb/tasks/TASK-NNN.md | head -n 16` MUST show `status: todo` with `owner: none` or your handle. Never judge by your local copy.
 3. Make the claim as a coordination commit in a temporary worktree of `origin/main` (section 11 recipe), never on a work branch: set `status: in-progress`, `owner: <you>`, `branch: <you>/task-nnn-<slug>`, and `code` with the paths you expect to touch (SHOULD, so that others' overlap checks see them, section 2); commit `TASK-NNN: claim`; `git push origin HEAD:main`.
 4. Push rejected: fetch, rebase the temporary worktree onto `origin/main`, push again. A conflict in `TASK-NNN.md` means someone else claimed it: `git rebase --abort`, remove the temporary worktree, pick another task. If after the rebase `git rev-list --count origin/main..HEAD` prints `0`, your claim commit was dropped because an identical claim (same handle, another session of your tool) is already there: the task is taken; pick another task.
-5. Create your branch `<you>/task-nnn-<slug>` from the updated `origin/main` (in its own worktree when agents work in parallel locally) and push it at once. Takeover: if the task's Notes contain `released; partial work on branch <old-branch>`, read `git show origin/<old-branch>:docs/mkb/handoff/TASK-NNN.md`, create your branch from that tip instead (`git switch -c <you>/task-nnn-<slug> origin/<old-branch>`), rebase it onto `origin/main`, push it, and verify the handoff against it; the handoff is now yours to overwrite; never push to the old branch.
+5. Create your branch `<you>/task-nnn-<slug>` from the updated `origin/main` (in its own worktree when agents work in parallel locally) and push it at once. Takeover: if the task's Notes contain `released; partial work on branch <old-branch>`, read `git show origin/<old-branch>:docs/mkb/handoff/TASK-NNN.md`, create your branch from that tip instead (`git switch -c <you>/task-nnn-<slug> origin/<old-branch>`), rebase it onto `origin/main` (merge instead if it has a `mkb: renumber` commit, section 11), push it, and verify the handoff against it; the handoff is now yours to overwrite; never push to the old branch.
 6. Dispatched agents that cannot push to the default branch (for example Codex cloud and the Copilot coding agent): the dispatching human makes the claim commit `TASK-NNN: claim for <handle>` before dispatch, with `branch: pending` if the tool names the branch later; the agent or the human replaces `pending` with the real name in the PR.
 7. When a task is yours: `owner` is your handle, AND `branch` is the branch you were told to resume or are on, AND `git worktree list` does not show that branch checked out in another worktree. `branch: pending` is yours only if you are the dispatched session. A task with your handle that fails this test belongs to another session of your tool: pick another task or ask the human.
 8. Minimal profile, one actor working on the default branch (section 14): the claim is the first commit of your work and SHOULD be pushed before you write code.
@@ -313,7 +313,7 @@ Never bump `verified` without actually checking the code.
 - One work item, one branch, one writer. Parallel local agents each use their own `git worktree`; git refuses to check out one branch in two worktrees.
 - Never push to or force-push a branch you did not create; a cloud agent and a local agent never share a branch. Exception: once the session that owns a PR branch has ended, a human reviewer MAY add commits to it (for example to set an ADR to `accepted` during review); never force-push it.
 - Two actors on one task at the same time is a claim violation, not a merge problem: the later actor stops.
-- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); keep branches to a few days. Exception: after a renumber (section 4) a branch takes the default branch by `git merge origin/main` until it merges.
+- Rebase your branch onto the default branch at session start and before every push (push your own rebased branch with `git push --force-with-lease`); keep branches to a few days. Exception: a branch whose `git log origin/main..HEAD` shows a `mkb: renumber` commit (section 4) takes the default branch by `git merge origin/main`, never a rebase, until it merges.
 - Lost-update guard: an agent's in-context copy of a file may be hours old. Re-read the file from disk right before editing it, patch only the lines you mean to change, and never write a whole MKB file regenerated from memory. If the file changed since you first read it, merge your intent into the new content.
 ### Coordination commits
 Coordination commits change only MKB coordination data and go straight to the default branch: claims, releases, block and unblock, new tasks and new questions (at allocation, section 4), answers, resolutions (except when the promotion creates an ADR, section 6), `state/CURRENT.md` facts that change outside a PR, and `state/NEXT.md` edits by the lead.
@@ -352,7 +352,7 @@ No remote: the same recipe with `git worktree add "$d" main` (a real checkout of
 | Conflict | Resolution |
 |---|---|
 | add/add on `tasks/TASK-NNN.md` or `questions/Q-NNN.md` in the coordination worktree | ID taken at creation: abort the rebase, allocate the next number, retry (section 4, allocation step 6) |
-| add/add on `decisions/ADR-NNN.md`, or on an ID already on a branch | ID collision: the branch merging second renumbers its own item (section 4) |
+| add/add on `decisions/ADR-NNN.md`, or on an ID already on a branch | your branch already has `mkb: renumber <that ID> -> <NEW-ID>` in `git log origin/main..HEAD`: `git rebase --abort`, then `git merge origin/main`; never renumber it again (section 4, renumbering step 6); otherwise ID collision: the branch merging second renumbers its own item (section 4) |
 | add/add on a knowledge doc | same subject documented twice: merge the content into one doc |
 | a knowledge doc's `verified` line | both sides bumped it: keep the older date, unless you re-check the merged doc against the merged code |
 | task `status`, `owner`, `branch` lines | claim race: the default branch wins; the other actor stops and picks another task |

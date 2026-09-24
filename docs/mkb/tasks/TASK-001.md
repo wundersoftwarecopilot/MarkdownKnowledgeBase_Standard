@@ -26,5 +26,6 @@ Out of scope: features the brief does not ask for.
 
 ## Notes
 - 2026-09-23 claude-code: the review workflow stopped at the session limit after verification; no fix has been applied yet.
+- 2026-09-24 claude-code: fixes run as five area clusters in parallel, then integration, independent audit per cluster and repair; `dev/DESIGN-CONTRACT.md` is left frozen and the spec is authoritative.
 
 ## Completion
