@@ -65,7 +65,7 @@ git log -S "<ID>"                # commits that added or removed a mention of th
 git log --all -- '*<ID>.md'      # history of a record file, including a deleted one
 ```
 
-Example: TareLog's Q-001 was deleted when its answer was promoted; `git grep -n -w Q-001 -- docs/mkb` finds the docs that carry the answer, marked `(resolves Q-001)`, and `git log --all -- '*Q-001.md'` shows the deleted file's history.
+Example: TareLog's Q-001 was deleted when its answer was promoted; `git grep -n -w Q-001 -- docs/mkb` finds the docs that carry the answer (ADR-003 cites Q-001 in its Context; INT-HAULER-SFTP and TASK-004 mark it `(resolves Q-001)`), and `git log --all -- '*Q-001.md'` shows the deleted file's history.
 
 ## 9.3 Knowledge maintenance
 
@@ -189,6 +189,7 @@ From PowerShell: `& "$env:ProgramFiles\Git\bin\bash.exe" docs/mkb/tools/mkb-chec
 
 - `--root DIR`: repository root containing `docs/mkb/`; default: `git rev-parse --show-toplevel`, else the current directory.
 - `--no-git`: skip checks W2, W3, W6, W14; `next` scans only the working tree.
+  Outside a git work tree it runs as with `--no-git`; in a shallow clone, whose history is incomplete, `check` runs as with `--no-git` and `next` exits 2 without printing an ID (run `git fetch --unshallow` first).
 - `--adr-dir DIR`: an ADR directory adopted in place ([13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4), relative to the root.
   Its files keep their native format: mkb-check applies no front-matter or file-name checks to them (E2, E3 and E4 are skipped there); E1 becomes "two files in DIR with the same leading number" (the duplicate-number check of [13-adoption-and-integration.md](13-adoption-and-integration.md) §13.4); W10 resolves `ADR-<n>` to a file `DIR/<n>-*.md`, comparing numbers as integers; `next ADR` prints 1 + the highest leading number of any file ever added to DIR on any ref ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3), padded to the width of the existing numbers, as `ADR-<n>`.
   Default: `docs/mkb/decisions` with the normal checks.

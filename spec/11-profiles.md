@@ -75,6 +75,7 @@ They let several humans and agents work at the same time without colliding:
 - Every task gets its own branch, and its claim is visible to others before coding ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4, [12-concurrency.md](12-concurrency.md) §12.1).
 - Gardening is weekly, and W5 warns after 14 days ([09-lifecycle.md](09-lifecycle.md) §9.6).
 - The CI job is advisory and never blocks on warnings, so it runs without `--strict` ([09-lifecycle.md](09-lifecycle.md) §9.7).
+- The CI job checks out the full history of every branch, because in a shallow clone mkb-check skips W2, W3, W6 and W14, and with branches missing it reports W6 falsely ([09-lifecycle.md](09-lifecycle.md) §9.7.2).
 
 Example: in TareLog session S7, two Claude Code sessions work at the same time in separate worktrees on TASK-004 and TASK-007; both claims carry the handle `claude-code`, and their `branch` values tell them apart ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4).
 
@@ -124,7 +125,7 @@ The upgrade is one MKB-only change; its steps are ordered so that INDEX never li
 3. If `docs/mkb/project/CONVENTIONS.md` does not exist, copy `docs/mkb/templates/CONVENTIONS.md` to it and keep only the conventions that tooling and `CONTRIBUTING.md` do not cover; when `CONTRIBUTING.md` covers them all, add the conventions path override row to INDEX instead ([02-directory-structure.md](02-directory-structure.md) §2.4).
 4. In `docs/mkb/INDEX.md`, set `profile: full`, and turn the backticked Layout rows of ARCHITECTURE and CONVENTIONS and the Routing rows "How the parts fit and where code lives" and "How code is written here" into their full-profile form; with a conventions override, keep the CONVENTIONS rows of the override ([02-directory-structure.md](02-directory-structure.md) §2.4).
    Add every new human or agent to `## People and agents` ([03-metadata.md](03-metadata.md) §3.4).
-5. Add the CI job (SHOULD): it runs `sh docs/mkb/tools/mkb-check.sh`, advisory, never blocking on warnings.
+5. Add the CI job (SHOULD): it runs `sh docs/mkb/tools/mkb-check.sh` on a checkout with the full history of every branch, advisory, never blocking on warnings (§11.3).
 6. Schedule weekly gardening ([09-lifecycle.md](09-lifecycle.md) §9.6).
 7. Run `sh docs/mkb/tools/mkb-check.sh`: zero errors.
 8. Commit it as an MKB-only change, with a subject that starts with `mkb:` ([04-naming-and-linking.md](04-naming-and-linking.md) §4.6).

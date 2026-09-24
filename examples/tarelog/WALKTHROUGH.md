@@ -416,10 +416,10 @@ So the fact goes to a new INT doc and the choice to a new ADR that supersedes AD
 | File | Change |
 |---|---|
 | Q-001 (main, marta) | `Q-001: answer`: Answer line, `status: answered` |
-| TASK-007 (main, claude-code) | `TASK-007: add`: "Remove the Chromium PDF pipeline", `normal`, `todo`, `owner: none`, before ADR-003 cites it |
+| TASK-007 (main, claude-code) | `TASK-007: add`: "Remove the Chromium PDF pipeline", `normal`, `todo`, `owner: none`, before ADR-003 cites it; it names no ADR yet, because ADR-003 exists only on the branch |
 | INT-HAULER-SFTP (PR #14) | new: key authentication "(resolves Q-001)", key in the vault at `tarelog/sftp-key`, `/inbound/tarelog/`, 06:00; no `code` yet; `verified: 2026-09-10` |
 | ADR-003 (PR #14) | new, drafted `proposed` by claude-code; marta accepts it in review: `deciders: [marta]`, `date: 2026-09-10`, `supersedes: [ADR-002]` |
-| ADR-002, MODULE-REPORTS, ARCHITECTURE (PR #14) | ADR-002 gets only `status: superseded` and `superseded_by: ADR-003`; the other two now cite ADR-003 |
+| ADR-002, MODULE-REPORTS, ARCHITECTURE, TASK-007 (PR #14) | ADR-002 gets only `status: superseded` and `superseded_by: ADR-003`; the other three now cite ADR-003, TASK-007 in its Goal and `related` (its owner is `none`, so anyone may edit it) |
 | TASK-004, Q-001 (PR #14) | TASK-004: two criteria rewritten "(resolves Q-001)", `blocked_by` removed, back to `in-progress` because `branch` is set; Q-001 deleted; commit `Q-001: resolved -> ADR-003, INT-HAULER-SFTP, TASK-004` |
 | NEXT, CURRENT (main, marta, after the merge) | NEXT: TASK-004, TASK-007, TASK-006, TASK-005; Focus `- 2026-09-10 marta: CSV delivery to Beta Haulage live before 2026-10-01 (TASK-004, TASK-007).` |
 
@@ -474,8 +474,9 @@ NEXT suggestion: TASK-007 PDF pipeline is dead code after ADR-003
 
 ### Rule illustrated
 
-- The owner answers in a coordination commit; the answer is promoted with `(resolves Q-001)`, the question deleted, and an ADR-creating promotion rides a PR: [spec/08-tasks-and-questions.md](../../spec/08-tasks-and-questions.md) §8.11.
+- The owner answers in a coordination commit; the answer is promoted with `(resolves Q-001)` (the new ADR cites Q-001 in its Context instead), the question deleted, and an ADR-creating promotion rides a PR: [spec/08-tasks-and-questions.md](../../spec/08-tasks-and-questions.md) §8.11.
 - The new ADR carries `supersedes`; the old one changes only `status` and `superseded_by`: [spec/07-decisions.md](../../spec/07-decisions.md) §7.6.
+- A new ADR is cited only on its own branch until that branch merges: [spec/04-naming-and-linking.md](../../spec/04-naming-and-linking.md) §4.3.
 - The promoter may edit the blocked task's criteria and status although another actor owns it: [spec/08-tasks-and-questions.md](../../spec/08-tasks-and-questions.md) §8.3.
 - An INT doc has no `code` until code talks to the system: [spec/03-metadata.md](../../spec/03-metadata.md) §3.5.
 

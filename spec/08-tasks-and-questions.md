@@ -109,7 +109,7 @@ A claim visible to others before coding is a MUST in the full profile and a SHOU
    A conflict in `TASK-NNN.md` means someone else claimed it: `git rebase --abort`, remove the temporary worktree, pick another task.
    If after the rebase `git rev-list --count origin/main..HEAD` prints `0`, your claim commit was dropped because an identical claim (same handle, another session of your tool) is already there: the task is taken; pick another task.
 5. Create your branch `<you>/task-nnn-<slug>` from the updated `origin/main` (in its own worktree when agents work in parallel locally) and push it at once.
-   Takeover: if the task's Notes contain `released; partial work on branch <old-branch>`, read `git show origin/<old-branch>:docs/mkb/handoff/TASK-NNN.md`, create your branch from that tip instead (`git switch -c <you>/task-nnn-<slug> origin/<old-branch>`), rebase it onto `origin/main`, push it, and verify the handoff against it; the handoff is now yours to overwrite; never push to the old branch.
+   Takeover: if the task's Notes contain `released; partial work on branch <old-branch>`, read `git show origin/<old-branch>:docs/mkb/handoff/TASK-NNN.md`, create your branch from that tip instead (`git switch -c <you>/task-nnn-<slug> origin/<old-branch>`), rebase it onto `origin/main` (merge instead if it has a `mkb: renumber` commit, [12-concurrency.md](12-concurrency.md) §12.1), push it, and verify the handoff against it; the handoff is now yours to overwrite; never push to the old branch.
 6. Dispatched agents that cannot push to the default branch (for example Codex cloud and the Copilot coding agent): the dispatching human makes the claim commit `TASK-NNN: claim for <handle>` before dispatch, with `branch: pending` if the tool names the branch later; the agent or the human replaces `pending` with the real name in the PR.
 7. When a task is yours: `owner` is your handle, AND `branch` is the branch you were told to resume or are on, AND `git worktree list` does not show that branch checked out in another worktree.
    `branch: pending` is yours only if you are the dispatched session.
@@ -260,7 +260,7 @@ There is deliberately no `blocks` key: the blocked task's `blocked_by` is the si
 ## 8.11 Resolution flow
 
 1. The owner (or an agent relaying an answer given in chat or a PR comment, quoting it verbatim with attribution `YYYY-MM-DD <handle> (via chat): ...`) writes the answer under `## Answer` and sets `status: answered`, as a coordination commit `Q-NNN: answer`.
-2. The next session that touches the question, or the answerer, promotes the answer to its permanent home and writes `(resolves Q-NNN)` there:
+2. The next session that touches the question, or the answerer, promotes the answer to its permanent home and writes `(resolves Q-NNN)` there (a new ADR cites Q-NNN in its Context instead):
 
    | The answer... | Goes to |
    |---|---|

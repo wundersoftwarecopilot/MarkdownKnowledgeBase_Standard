@@ -43,16 +43,18 @@ Each block is one compound statement, so a stop leaves nothing half done even wh
 
 ## Upgrade commands
 
-Upgrade (sh, then PowerShell); `git rm` keeps the old files in history:
+Upgrade (sh, then PowerShell); `git rm` keeps the old files in history and `git add` stages the new ones for the one upgrade commit:
 
 ```sh
 git -C "$REPO" rm -r -q docs/mkb/templates docs/mkb/tools
 cp -R templates/<profile>/docs/mkb/templates templates/<profile>/docs/mkb/tools "$REPO/docs/mkb/"
+git -C "$REPO" add docs/mkb/templates docs/mkb/tools
 ```
 
 ```powershell
 git -C $repo rm -r -q docs/mkb/templates docs/mkb/tools
 Copy-Item -Recurse templates/<profile>/docs/mkb/templates, templates/<profile>/docs/mkb/tools "$repo/docs/mkb/"
+git -C $repo add docs/mkb/templates docs/mkb/tools
 ```
 
 Never copy `templates/<profile>/.` over a repository: it would overwrite filled files.

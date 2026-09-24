@@ -9,14 +9,16 @@ Adoption never overwrites existing files: what exists is adopted in place, migra
 
 Choose the profile first ([11-profiles.md](11-profiles.md) §11.1); the files each profile creates at adoption are listed in [02-directory-structure.md](02-directory-structure.md) §2.2.
 
-1. Inspect the repository: README, CONTRIBUTING, `docs/`, a site generator that builds `docs/` (GitHub Pages from `/docs`, MkDocs, Docusaurus, Sphinx), ADR directories, AGENTS.md, CLAUDE.md, `.cursor/rules`, `.cursorrules`, GEMINI.md, `.github/copilot-instructions.md`, `.gitattributes`, monolithic handoff or notes files, issue tracker usage.
+1. Inspect the repository: README, CONTRIBUTING, `docs/`, a site generator that builds `docs/` (GitHub Pages from `/docs`, MkDocs, Docusaurus, Sphinx), ADR directories, AGENTS.md, CLAUDE.md, `.cursor/rules`, `.cursorrules`, GEMINI.md, `.github/copilot-instructions.md`, `.gitattributes`, monolithic handoff or notes files, task lists such as `TODO.md` or `BACKLOG.md`, issue tracker usage.
 2. Work on branch `<actor>/mkb-adopt`; a human reviews the PR.
 3. Run the adoption commands of §13.1.1: they stop if `docs/mkb` exists, copy `templates/<profile>/docs/mkb` to `docs/mkb`, and append the lines of `templates/gitattributes-mkb.txt` to `.gitattributes` only where absent.
    Nothing existing is overwritten.
-4. Fill INDEX (People and agents, Path overrides), OVERVIEW, CONSTRAINTS, CURRENT, NEXT; in the full profile also ARCHITECTURE (an agent drafts it from the code, a human reviews it) and CONVENTIONS (or an override to CONTRIBUTING.md).
+4. Fill INDEX (People and agents, Path overrides), OVERVIEW, CONSTRAINTS, CURRENT, NEXT; in the full profile also ARCHITECTURE (an agent drafts it from the code, a human reviews it) and CONVENTIONS.
+   When `CONTRIBUTING.md` already covers conventions, delete `docs/mkb/project/CONVENTIONS.md` instead and add the conventions path override row with its row changes ([02-directory-structure.md](02-directory-structure.md) §2.4.5).
    Delete every guide comment.
 5. Insert the MKB block into root `AGENTS.md` between its markers (create the file if missing); create or update root `CLAUDE.md`; add tool pointers only where needed (§13.5).
 6. Migrate existing content (§13.2 to §13.4).
+   Tasks and questions created during adoption are allocated as in [04-naming-and-linking.md](04-naming-and-linking.md) §4.3 but ride the adoption PR instead of coordination commits, because no other actor can allocate an ID before `docs/mkb` reaches the default branch.
 7. Run `sh docs/mkb/tools/mkb-check.sh` (with `--adr-dir <dir>` when an ADR directory is adopted): zero errors.
    When a site generator builds `docs/`, also run the site build (§13.2.1).
 8. Commit `mkb: adopt MKB v1.0 (<profile> profile)`.
@@ -24,10 +26,10 @@ Choose the profile first ([11-profiles.md](11-profiles.md) §11.1); the files ea
 Rules that also apply at adoption, each defined in its home chapter:
 
 - Placeholders and guide comments in the copied files: [templates/README.md](../templates/README.md); a guide comment left in a real file is warning W11 ([09-lifecycle.md](09-lifecycle.md) §9.7).
-- At most the 3 most-changed components get knowledge docs; nothing is bulk-generated ([09-lifecycle.md](09-lifecycle.md) §9.3).
+- At most the 3 most-changed components get knowledge docs written from the code; nothing is bulk-generated; docs holding migrated facts are not counted ([09-lifecycle.md](09-lifecycle.md) §9.3, §13.3).
 - Past decisions found in old notes become backfilled ADRs ([07-decisions.md](07-decisions.md) §7.8).
 - Running the checker from PowerShell: [09-lifecycle.md](09-lifecycle.md) §9.7.
-- Each local agent tool makes one real coordination commit while a human watches (§13.5.4).
+- Each local agent tool except Aider, whose claims the human makes (§13.5.3), makes one real coordination commit while a human watches (§13.5.4).
 
 Example: TareLog adopted the full profile in session S1, on branch `claude-code/mkb-adopt` with PR #10, with an INDEX that names marta, luca, claude-code and codex and has no path override, because a CONVENTIONS.md was created for what `CONTRIBUTING.md` lacks; see [examples/tarelog/WALKTHROUGH.md](../examples/tarelog/WALKTHROUGH.md), section S1.
 
@@ -80,9 +82,9 @@ The profiles ship no `.gitattributes` of their own, because a copy would overwri
 | `CONTRIBUTING.md` | Adopt in place; authoritative for the contribution process. CONVENTIONS.md holds only what it lacks; if it covers everything, no CONVENTIONS.md and an INDEX override row ([02-directory-structure.md](02-directory-structure.md) §2.4). |
 | Existing ADR directory (`docs/adr/`, `doc/adr/`, `docs/decisions/`; adr-tools `NNNN-slug.md`, MADR) | Adopt in place; never move or rename (external links and tooling depend on names). Everything else: §13.4. |
 | A site generator that builds `docs/` (GitHub Pages from `/docs`, MkDocs, Docusaurus, Sphinx) | Exclude `docs/mkb/` from the build, or have the lead approve the exposure: §13.2.1. |
-| Monolithic `Handoff.md`, `NOTES.md`, `STATUS.md` | Migrate once (§13.3). |
+| Monolithic `Handoff.md`, `NOTES.md`, `STATUS.md`; task lists such as `TODO.md`, `BACKLOG.md` | Migrate once (§13.3). |
 | `AGENTS.md` | Adopt in place; insert the MKB block between markers; move project knowledge found in it (architecture, module notes, status) into the MKB, leaving commands and style rules. |
-| `CLAUDE.md` | Adopt in place; first line `@AGENTS.md`; remove content that duplicates AGENTS.md; keep Claude-only notes. |
+| `CLAUDE.md` | Adopt in place; put the lines of its copy-ready form (§13.5.2) at its top; move project knowledge found in it (architecture, module notes, status) into the MKB and notes for every tool into AGENTS.md unless AGENTS.md already says them; keep Claude Code only notes. |
 | `.cursor/rules/*.mdc`, `.cursorrules`, `GEMINI.md`, `.github/copilot-instructions.md` | Keep tool-specific rules; replace duplicated project rules with a one-line pointer to AGENTS.md; `.cursorrules` is legacy: move its content to AGENTS.md or `.cursor/rules/`. |
 | Other docs (`docs/*.md`, runbooks, wiki) | Leave in place; add INDEX Routing rows or Path overrides pointing to them; migrate a doc into the MKB only when rewriting it anyway. |
 | External issue tracker | §13.6. |
@@ -107,9 +109,10 @@ A monolithic `Handoff.md`, `NOTES.md` or `STATUS.md` is migrated once, then repl
 
 | Paragraph content | Destination |
 |---|---|
-| durable fact about code, data, devices, vendors, environments | knowledge doc, or project/OVERVIEW.md or ARCHITECTURE.md |
+| durable fact about code, data, devices, vendors, environments | the knowledge doc of its component, device or vendor, created if missing (not counted by the adoption limit of [09-lifecycle.md](09-lifecycle.md) §9.3), or project/OVERVIEW.md or ARCHITECTURE.md |
 | past significant decision | backfilled ADR ([07-decisions.md](07-decisions.md) §7.8) |
-| non-negotiable rule stated by a person or document | project/CONSTRAINTS.md with source |
+| non-negotiable rule stated by a person or document | project/CONSTRAINTS.md once a human states it in the session, citing them and the original source; otherwise a question to the lead |
+| team-wide convention (code style, versioning, review) | project/CONVENTIONS.md, or `CONTRIBUTING.md` under a conventions path override; dropped where tooling or `CONTRIBUTING.md` already says the same |
 | open work | tasks |
 | open question | questions |
 | current condition (build, deployments, known breakage) | state/CURRENT.md bullets dated with the migration date |
@@ -130,7 +133,7 @@ Do not add content here; this stub is deleted at the first gardening after YYYY-
 ```
 
 The stub sends people and agents that open the old path to the INDEX, and its conflict with any branch that still edits the old file (step 5) makes a late edit loud instead of lost.
-Note: `NOTES.md` and `STATUS.md` follow the same steps (§13.2); their stub names the file it replaces.
+Note: `NOTES.md`, `STATUS.md` and task lists such as `TODO.md` follow the same steps (§13.2); their stub names the file it replaces, and a task list kept beside `tasks/` is anti-pattern 9 ([10-anti-patterns.md](10-anti-patterns.md)).
 
 Example: TareLog's 600-line `Handoff.md` yielded SERVICE-GATEWAY, DB-TICKETS and TS-SQLITE-LOCKED and the backfilled ADR-001, whose Context starts `Recorded retroactively from Handoff.md on 2026-09-01.`; the full mapping table is in [examples/tarelog/WALKTHROUGH.md](../examples/tarelog/WALKTHROUGH.md), section S1.
 
@@ -141,7 +144,8 @@ An ADR directory that exists before adoption (`docs/adr/`, `doc/adr/`, `docs/dec
 - Old and new ADRs keep the directory's native format, file naming and numbering; no MKB front matter is added (MADR front matter would clash with the MKB schema).
 - The MKB ADR rules apply ([07-decisions.md](07-decisions.md) §7.1 to §7.8: who decides, immutability, superseding); the MKB schema does not.
 - New ADRs use the directory's own template; if it lacks any of Context, Problem, Decision, Alternatives considered or Consequences, add the missing ones as sections.
-- The ID in prose is `ADR-` plus that number (`ADR-0007`); allocate with the adopted-directory variant of [04-naming-and-linking.md](04-naming-and-linking.md) §4.3 or `mkb-check.sh next ADR --adr-dir <dir>`.
+- Where [07-decisions.md](07-decisions.md) §7.4 and §7.8 set `deciders` and `date`, an ADR there records the deciders in its format's own deciders field if it has one, else as the line `Deciders: <handle>, <handle>` below the native status, and sets its native date the same way; the rules that name `deciders` read that field or line.
+- The ID in prose is `ADR-` plus that number (`ADR-0007`) and names the file `<dir>/0007-*.md`, whose text does not contain the ID: open it with `git ls-files "<dir>/0007-*"`, because `git grep -w` for the ID finds only the docs that cite it; allocate with the adopted-directory variant of [04-naming-and-linking.md](04-naming-and-linking.md) §4.3 or `mkb-check.sh next ADR --adr-dir <dir>`.
 - Legacy `Proposed` ADRs already on the default branch violate the rule that an ADR reaches the default branch only as `accepted` or `rejected` ([07-decisions.md](07-decisions.md) §7.4): the lead accepts or rejects each one during adoption.
 - Because file name differs from ID, the duplicate-number check (§13.4.3) is mandatory before merges and in CI, and `mkb-check.sh` runs with `--adr-dir <that directory>` ([09-lifecycle.md](09-lifecycle.md) §9.7).
 
@@ -164,10 +168,10 @@ Only `accepted` ADRs bind; the others are never authoritative ([01-architecture.
 Add a path override row to INDEX (the first override row replaces the `| none | - | - |` row, [02-directory-structure.md](02-directory-structure.md) §2.4), for example for an adr-tools directory at `docs/adr/`:
 
 ```markdown
-| decisions | `docs/adr/NNNN-<slug>.md` | adr-tools directory adopted in place, native format; IDs are ADR-NNNN; run mkb-check with `--adr-dir docs/adr` |
+| decisions | `docs/adr/NNNN-<slug>.md` | adr-tools directory adopted in place, native format; ID ADR-NNNN is the file `docs/adr/NNNN-*.md`, whose text does not contain it; run mkb-check with `--adr-dir docs/adr` |
 ```
 
-The Layout row `decisions/ADR-NNN.md` names the adopted directory; the Routing row "What must never be broken" becomes the row below; "Why something is the way it is" greps the adopted directory instead of `docs/mkb/decisions`.
+The Layout row `decisions/ADR-NNN.md` names the adopted directory; the Routing row "What must never be broken" becomes the row below; "Why something is the way it is" and "Docs about code you will touch" grep the adopted directory instead of `docs/mkb/decisions`.
 
 ```markdown
 | What must never be broken | project/CONSTRAINTS.md, then accepted ADRs in `docs/adr/` | `git grep -l -i -E '^(status: *"?)?accepted' -- docs/adr` |
@@ -197,7 +201,7 @@ The copy-ready agent files and their install steps are in [agent-instructions/](
 ### 13.5.1 The MKB block
 
 The operational rules for agents are one block of at most 35 lines in root `AGENTS.md`, between the lines `<!-- MKB:BEGIN v1.0 -->` and `<!-- MKB:END -->`.
-The v1.0 block is 29 lines including the markers; its text is in [agent-instructions/AGENTS.tmpl.md](../agent-instructions/AGENTS.tmpl.md) and is not repeated here.
+The v1.0 block is 30 lines including the markers; its text is in [agent-instructions/AGENTS.tmpl.md](../agent-instructions/AGENTS.tmpl.md) and is not repeated here.
 It covers:
 
 - Before changing code (items 1 to 4): fetch and rebase, read INDEX and CURRENT, the lite path, pick the task and read its handoff, claim, discovery.
@@ -207,7 +211,7 @@ It covers:
 
 Rules for the block:
 
-- Adopters whose default branch is not named `main` replace `main` in the block's commands, as in RULES.md and INDEX.md; that is the only edit allowed.
+- Adopters whose default branch is not named `main` replace `main` in the block's commands (the only edit allowed in the block) and in INDEX.md; RULES.md is not edited, because its opening lines say that commands write the default branch as `main`.
 - Project-specific agent notes (build, test, style) go above the MKB block; keep the file small, because some tools cap instruction size.
 - An existing `AGENTS.md` is adopted in place (§13.2): the block is inserted between its markers.
 - The block changes only when the MKB version is upgraded, and then it is replaced whole (§13.8).
@@ -223,7 +227,7 @@ Root `CLAUDE.md` imports `AGENTS.md`; its copy-ready form is [agent-instructions
 
 - The first line is exactly `@AGENTS.md` as plain text; it MUST NOT be inside backticks or a code block (Claude Code ignores imports there).
 - Below it, a plain fallback line tells tools that do not expand the import to read `AGENTS.md` at the repository root and follow its section Project memory (MKB).
-- Notes below must be tool-neutral, or go in AGENTS.md, because Cursor, and possibly GitHub Copilot, also read this file; do not copy AGENTS.md content into it.
+- Notes below it are for Claude Code only and each starts with `Claude Code only:`, because Cursor and GitHub Copilot also read this file; notes for every tool go in AGENTS.md, and AGENTS.md content is never copied into it.
 - Its own content stays within 20 lines ([02-directory-structure.md](02-directory-structure.md) §2.3).
 
 ### 13.5.3 Per-tool wiring
@@ -234,32 +238,35 @@ Tool loading rules change between versions, so the wiring is re-checked at garde
 | Tool | What it loads natively | MKB wiring | Status |
 |---|---|---|---|
 | Codex CLI, IDE extension, desktop app | In each directory from the project root down to the working directory, `AGENTS.override.md` if present, else `AGENTS.md` (at most one per directory); merged root first, later files override; stops at 32 KiB combined (`project_doc_max_bytes`). | The block in root `AGENTS.md`. If the repository has a root `AGENTS.override.md`, Codex skips root `AGENTS.md` there: put the block in the override file or remove the override. Check with `codex --ask-for-approval never "Summarize the current instructions."` | verified |
-| Codex cloud | UNVERIFIED (not on the cloud doc page; only a search snippet says it reads AGENTS.md). | Same root `AGENTS.md`. The dispatching human claims the task ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) and selects the task branch when resuming. At adoption, ask a cloud task to summarize its instructions to confirm. | UNVERIFIED |
-| Claude Code | CLAUDE.md files in the working directory and above at launch (concatenated, closest last); subdirectory CLAUDE.md files on demand when Claude reads files there; `@path` imports (max 4 hops; ignored inside code spans and code blocks). Reads AGENTS.md natively only from v2.1.277, and by default only when no CLAUDE.md exists; not on Bedrock or other third-party providers, with telemetry disabled, or before v2.1.277. | Root `CLAUDE.md` whose first line is `@AGENTS.md` as plain text, then only Claude-specific notes; the docs state the import never loads the file twice. On Windows use the import, not a symlink. Never put a CLAUDE.md under `docs/mkb/`: it would load as instructions for that subtree. | verified |
+| Codex cloud | `AGENTS.md`: the cloud environments page says the agent uses it to find project-specific lint and test commands. Whether it loads the whole file as instructions, and nested files and the 32 KiB cap as Codex CLI does, is UNVERIFIED. | Same root `AGENTS.md`. The dispatching human claims the task ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) and selects the task branch when resuming. At adoption, ask a cloud task to summarize its instructions to confirm. | verified; scope of loading UNVERIFIED |
+| Claude Code | CLAUDE.md files in the working directory and above at launch (concatenated, closest last); subdirectory CLAUDE.md files on demand when Claude reads files there; `@path` imports (max 4 hops; ignored inside code spans and code blocks). Reads AGENTS.md natively only from v2.1.277, and by default only when no CLAUDE.md exists; not with the built-in `agents-md` plugin disabled, in some cases not in the first session after an upgrade from v2.1.276 or earlier, and before v2.1.281 not in some sessions, such as those on Amazon Bedrock or with telemetry disabled. | Root `CLAUDE.md` whose first line is `@AGENTS.md` as plain text, then only Claude-specific notes; the docs state the import never loads the file twice. On Windows use the import, not a symlink. Never put a CLAUDE.md under `docs/mkb/`: it would load as instructions for that subtree. Check with `/context`: root `CLAUDE.md` is listed under Memory files. | verified |
 | Cursor | Root `AGENTS.md` (plain Markdown); nested `AGENTS.md` for its subtree; root `CLAUDE.md` always applied; `.cursor/rules/*.mdc` with `description`, `globs`, `alwaysApply`; plain `.md` in `.cursor/rules` ignored; `.cursorrules` is legacy. | Nothing required. Optional `.cursor/rules/mkb.mdc` (§13.5.5) for teams that rely on rules. Cursor sees the literal `@AGENTS.md` line of CLAUDE.md; whether it expands it is UNVERIFIED and harmless because it reads AGENTS.md anyway. | verified; import expansion UNVERIFIED |
 | Gemini CLI | `GEMINI.md` (global, workspace and parents, just-in-time for accessed directories); `context.fileName` in `.gemini/settings.json` accepts a string or array; imports `@./file.md`. | `.gemini/settings.json` from §13.5.5. Check with `/memory show`. | verified |
 | Aider | Nothing automatically; `/read`, `--read` or `read:` in `.aider.conf.yml`. | `.aider.conf.yml` from §13.5.5. Aider cannot run the discovery greps or claims itself: the human runs discovery (`/read` the docs found), claims and handoffs. | verified (no native discovery found) |
-| GitHub Copilot on GitHub.com (cloud agent, code review, Chat) | `.github/copilot-instructions.md` (repository-wide); `.github/instructions/**/NAME.instructions.md` with `applyTo`; agent instructions from `AGENTS.md` anywhere (nearest wins) or a single root `CLAUDE.md` or `GEMINI.md`; the docs say agent instructions "are currently not supported by all Copilot features". | Nothing required for the cloud agent. Optional one-line pointer in `.github/copilot-instructions.md` (§13.5.5) for features that do not read AGENTS.md; which features those are is UNVERIFIED. Which file wins when both root `AGENTS.md` and root `CLAUDE.md` exist is UNVERIFIED; the plain fallback line in `CLAUDE.md` (§13.5.2) covers the case where only `CLAUDE.md` is read. At adoption, ask the Copilot agent to summarize its instructions. The cloud agent follows the dispatcher-claims rule. | verified; feature coverage and AGENTS.md/CLAUDE.md precedence UNVERIFIED |
-| GitHub Copilot in VS Code | Settings `chat.useAgentsMdFile`, `chat.useNestedAgentsMdFiles` (off by default), `chat.useClaudeMdFile`; `.instructions.md` files; sources are additive. | Ensure `chat.useAgentsMdFile` is enabled (its default is UNVERIFIED); leave nested files off. | partly UNVERIFIED |
+| GitHub Copilot cloud agent, and code review on GitHub.com | `.github/copilot-instructions.md` (repository-wide); `.github/instructions/**/NAME.instructions.md` with `applyTo`; the cloud agent reads `AGENTS.md` anywhere (nearest wins) or a single root `CLAUDE.md` or `GEMINI.md`; code review reads `AGENTS.md` only. | Nothing required. Which file wins when both root `AGENTS.md` and root `CLAUDE.md` exist is UNVERIFIED; the plain fallback line in `CLAUDE.md` (§13.5.2) covers the case where only `CLAUDE.md` is read. At adoption, ask the cloud agent to summarize its instructions. The cloud agent follows the dispatcher-claims rule. | verified; AGENTS.md/CLAUDE.md precedence UNVERIFIED |
+| GitHub Copilot Chat on GitHub.com, Visual Studio, JetBrains IDEs, Eclipse and Xcode | `.github/copilot-instructions.md`, and in some of them path-specific `.instructions.md` files; none reads `AGENTS.md`, `CLAUDE.md` or `GEMINI.md` (GitHub's [custom instructions support matrix](https://docs.github.com/en/copilot/reference/custom-instructions-support)). | The one-line pointer in `.github/copilot-instructions.md` (§13.5.5) if the team uses any of these. | verified |
+| GitHub Copilot in VS Code | Settings `chat.useAgentsMdFile` (on by default), `chat.useNestedAgentsMdFiles` (off by default), `chat.useClaudeMdFile` (on by default); `.instructions.md` files; sources are additive. | Keep `chat.useAgentsMdFile` enabled; leave nested files off. | verified |
+| GitHub Copilot CLI | `.github/copilot-instructions.md`; `AGENTS.md`, `CLAUDE.md` (also `.claude/CLAUDE.md`) and `GEMINI.md` in the repository root, the working directory, the directories between them and the directories of files it works on; it combines all files found, with no general precedence order. | Nothing required. Check with `/instructions`. | verified |
 | Windsurf / Devin Desktop (Cascade) | `AGENTS.md` or `agents.md`; root file always on; subdirectory file scoped to that directory; parent directories up to the git root. | Nothing required. | verified |
 
 Size facts: Codex caps combined instructions at 32 KiB by default; Claude Code docs advise under 200 lines per file; Cursor advises under 500 lines per rule.
-The block is 29 lines including its markers, well inside all three.
+The block is 30 lines including its markers, well inside all three.
 
 ### 13.5.4 What coordination commits need from a local agent tool
 
-Every item in this table is UNVERIFIED and is checked at adoption.
+Facts verified 2026-09-23; items are UNVERIFIED unless their Status says otherwise.
+Every item is checked at adoption.
 
 | Tool | Needs | Status |
 |---|---|---|
-| Codex CLI | Network access for `git fetch` and `git push`, and writes to the system temp directory for the coordination worktree ([12-concurrency.md](12-concurrency.md) §12.2). Its default sandbox may disable network access: approve those commands when asked, or enable network access for its workspace-write sandbox in its configuration (reported as `network_access = true` under `[sandbox_workspace_write]`). | UNVERIFIED |
+| Codex CLI | Network access for `git fetch` and `git push`, writes to the system temp directory for the coordination worktree ([12-concurrency.md](12-concurrency.md) §12.2), and writes to the repository's Git directory. Its default workspace-write sandbox keeps network access off and keeps `.git` read-only, including the Git directory that a worktree's `.git` file points to, so enabling network access (`network_access = true` under `[sandbox_workspace_write]`) is not enough: every git command that writes (`git fetch`, `git worktree`, `git commit`, `git rebase`, `git push`) must run outside the sandbox. Approve those commands when asked, or allow them with `prefix_rule` entries with `decision = "allow"` in `~/.codex/rules/default.rules`. | verified |
 | Claude Code | Permission to run `git fetch`, `git push` and `git worktree`, and to write in the system temp directory; allow these in its permission settings so that claims do not stall on prompts. | UNVERIFIED |
-| Codex cloud, Copilot coding agent | Cannot push to the default branch: the dispatching human claims ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) and creates the tasks and questions they request ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3). Network access after setup is UNVERIFIED. | UNVERIFIED |
+| Codex cloud, Copilot coding agent | Cannot push to the default branch: the dispatching human claims ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4) and creates the tasks and questions they request ([04-naming-and-linking.md](04-naming-and-linking.md) §4.3). Codex cloud turns agent internet access off by default after the setup script (it can be enabled per environment), so `git fetch` fails there unless the dispatcher enables it; Copilot coding agent network access is UNVERIFIED. | partly UNVERIFIED |
 
-Adoption check: have each local agent tool make one real coordination commit (for example its first claim) while a human watches.
+Adoption check: have each local agent tool except Aider, whose claims the human makes (§13.5.3), make one real coordination commit (for example its first claim) while a human watches.
 An agent that cannot fetch or push stops before coding and asks the human to push the claim ([08-tasks-and-questions.md](08-tasks-and-questions.md) §8.4).
 
-Example: in TareLog session S5, Luca runs Codex CLI and approves its `git fetch` and `git push` calls, so Codex makes its own claim of TASK-004 on `main`.
+Example: in TareLog session S5, Luca runs Codex CLI and approves its `git fetch`, `git worktree`, `git commit` and `git push` calls, so Codex makes its own claim of TASK-004 on `main`.
 
 ### 13.5.5 Recommended wiring
 
@@ -323,16 +330,18 @@ An upgrade replaces only the standard parts of an adoption: the agent block, RUL
 4. Set `mkb_version` in INDEX and RULES.
 5. Make one commit `mkb: upgrade to MKB v<version>`.
 
-Upgrade (sh, then PowerShell); `git rm` keeps the old files in history:
+Upgrade (sh, then PowerShell); `git rm` keeps the old files in history and `git add` stages the new ones for the one upgrade commit:
 
 ```sh
 git -C "$REPO" rm -r -q docs/mkb/templates docs/mkb/tools
 cp -R templates/<profile>/docs/mkb/templates templates/<profile>/docs/mkb/tools "$REPO/docs/mkb/"
+git -C "$REPO" add docs/mkb/templates docs/mkb/tools
 ```
 
 ```powershell
 git -C $repo rm -r -q docs/mkb/templates docs/mkb/tools
 Copy-Item -Recurse templates/<profile>/docs/mkb/templates, templates/<profile>/docs/mkb/tools "$repo/docs/mkb/"
+git -C $repo add docs/mkb/templates docs/mkb/tools
 ```
 
 Run them from the root of the new version of the standard repository, as in §13.1.1; the warning there applies: never copy `templates/<profile>/.` over a repository.
