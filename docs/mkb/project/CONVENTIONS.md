@@ -14,7 +14,7 @@ Changes need a human's approval in review.
 - Before a commit that changes the standard, run every command in [project/OVERVIEW.md](OVERVIEW.md), section Commands.
 
 ## Branches and commits
-- Trunk-based work on `main` (minimal profile); there is no remote, so the local commit is the only copy: commit at every milestone.
+- Trunk-based work on `main` (minimal profile): commit at every milestone; push to `origin` only when claudio asks, so until then the local commit is the only copy.
 - Commit subjects start with the task ID (`TASK-NNN: <summary>`), or with `mkb:` for MKB-only changes.
 
 ## Reviews and merging

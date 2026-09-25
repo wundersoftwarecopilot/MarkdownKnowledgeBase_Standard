@@ -73,7 +73,7 @@ Status queries read `origin/main` (without a remote: `main`), because claims and
 | Handle | Kind | Role |
 |---|---|---|
 | claudio | human | lead: orders state/NEXT.md, accepts or rejects ADRs |
-| claude-code | agent | Claude Code desktop app on claudio's PC, working directly on `main` (no remote) |
+| claude-code | agent | Claude Code desktop app on claudio's PC, working directly on `main`; pushes to `origin` only when claudio asks |
 
 ## Path overrides
 | Kind | Lives at | Note |

@@ -30,7 +30,7 @@ The requirements come from the brief `Prompt_MarkdownKnowledgeBase_Standard.md`;
 3. An adoption elsewhere, which is what the standard ships: the commands in `templates/README.md` copy one profile into the target repository, and `agent-instructions/` supplies its `AGENTS.md` block and `CLAUDE.md`.
 
 ## Deployment
-Nothing runs: the standard is published as the files of this repository, which has no remote yet.
+Nothing runs: the standard is published as the files of this repository, public on GitHub at https://github.com/wundersoftwarecopilot/MarkdownKnowledgeBase_Standard (remote `origin`).
 The version is the string `MKB Standard v1.0` in status lines, `mkb_version: "1.0"` in INDEX and RULES, and `v1.0` in the agent block markers.
 
 ## Cross-cutting concerns

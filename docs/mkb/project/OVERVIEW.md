@@ -14,7 +14,7 @@ Out of scope: tooling beyond the checker; monorepos with several MKBs (`spec/01-
 - Markdown (GFM) with the MKB YAML front matter subset (`spec/03-metadata.md`).
 - `mkb-check.sh`: POSIX sh, awk and git; its source is `templates/full/docs/mkb/tools/mkb-check.sh`.
 - Development aids in `dev/`: `check_links.py` (Python 3.11 with PyYAML), the checker test suite `mkb-check-tests/`, the design contract `DESIGN-CONTRACT.md` and the review data `review-round-1.json`.
-- Windows 11 with Git Bash; default branch `main`; no remote.
+- Windows 11 with Git Bash; default branch `main`; remote `origin`: https://github.com/wundersoftwarecopilot/MarkdownKnowledgeBase_Standard (public; over HTTPS, the SSH key of this PC is not registered on GitHub).
 
 ## Commands
 - Links, anchors and front matter of every Markdown file: `python dev/check_links.py .`
